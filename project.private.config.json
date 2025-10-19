@@ -1,0 +1,14 @@
+{
+  "libVersion": "3.10.2",
+  "projectname": "Ani%E5%B7%A5%E5%85%B7%E7%9B%92",
+  "setting": {
+    "urlCheck": true,
+    "coverView": true,
+    "lazyloadPlaceholderEnable": false,
+    "skylineRenderEnable": false,
+    "preloadBackgroundData": false,
+    "autoAudits": false,
+    "showShadowRootInWxmlPanel": true,
+    "compileHotReLoad": true
+  }
+}
