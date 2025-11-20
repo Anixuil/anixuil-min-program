@@ -5,7 +5,7 @@
 -->
 <template>
   <view class="index-wrapper">
-    <up-loading-page bgColor="#121826" color="#00FF94" :loading="pageLoading" loading-text="小羽狂飞中..." icon-size="30"></up-loading-page>
+    <up-loading-page bgColor="#ffffff" color="#FF6B35" :loading="pageLoading" loading-text="小羽狂飞中..." icon-size="30"></up-loading-page>
   </view>
 </template>
 
@@ -23,7 +23,7 @@ onLoad(() => {
 .index-wrapper {
   width: 100vw;
   height: 100vh;
-  background-color: #121826;
+  background-color: #ffffff;
   box-sizing: border-box;
   padding: 32rpx;
 }

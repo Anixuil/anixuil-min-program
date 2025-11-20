@@ -26,10 +26,6 @@
       "path": "pages/profile/index",
       "style": {
         "navigationBarTitleText": "我的-羽球对决",
-        "renderer": "skyline",
-        "componentFramework": "glass-easel",
-        "navigationStyle": "custom",
-        "disableScroll": true
       }
     },
     {
@@ -46,16 +42,16 @@
     }
   ],
   "globalStyle": {
-    "navigationBarTextStyle": "white",
+    "navigationBarTextStyle": "black",
     "navigationBarTitleText": "羽球对决",
-    "navigationBarBackgroundColor": "#1E293B",
-    "backgroundColor": "#1E293B"
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#ffffff"
   },
   "tabBar": {
-    "color": "#8C8C8C",
-    "selectedColor": "#00FF94",
-    "backgroundColor": "#1E293B",
-    "borderStyle": "white",
+    "color": "#999999",
+    "selectedColor": "#FF6B35",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/index/index",

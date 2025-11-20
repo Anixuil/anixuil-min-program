@@ -2,7 +2,7 @@
  * @Author: Anixuil
  * @Date: 2025-09-26 16:52:01
  * @LastEditors: Anixuil
- * @LastEditTime: 2025-10-03 10:07:51
+ * @LastEditTime: 2025-10-19 22:46:27
  * @Description: 用户接口
  */
 import request from "@/utils/request";
@@ -29,6 +29,43 @@ const UserAPI = {
       method: "POST",
       data,
     })
+  },
+
+  // 发送邮箱验证码
+  sendEmailCode(data: { userEmail: string, emailTitle: string }): Promise<any> {
+    return request({
+      url: `${USER_BASE_URL}/sendEmailCode`,
+      method: "POST",
+      data,
+    })
+  },
+
+  // 验证邮箱验证码
+  verifyEmailCode(data: { userEmail: string, code: string }): Promise<any> {
+    return request({
+      url: `${USER_BASE_URL}/verifyEmailCode`,
+      method: "POST",
+      data,
+    })
+  },
+
+  // 更改用户信息
+  updateUserInfo(data: { userId: number, userEmail?: string, userName?: string, userAge?: string, userAlias?: string }): Promise<any> {
+    return request({
+      url: `${USER_BASE_URL}/updateUserInfo`,
+      method: "PUT",
+      data,
+    })
+  },
+
+  // 绑定微信
+  bingWx(data: { code: string | number }): Promise<any> {
+    return request({
+      url: `${USER_BASE_URL}/bindWx`,
+      method: 'POST',
+      data,
+    })
+
   }
 };
 export default UserAPI;
@@ -36,7 +73,7 @@ export default UserAPI;
 /** 登录用户信息 */
 export interface UserInfo {
   /** 用户ID */
-  userId?: number;
+  userId: number;
 
   /** 用户名 */
   userName?: string;
@@ -55,11 +92,13 @@ export interface UserInfo {
   wxUnionId?: string; // 微信unionid
 
   userAge?: string; // 用户年龄
+
+  userPassword?: string; // 用户密码
 }
 
 /** 微信登录数据 */
 export interface WxLoginData {
-  code: string; // 微信登录code
+  code: string | number; // 微信登录code
   avatarUrl: string; // 微信头像
   nickName: string; // 微信昵称
 }

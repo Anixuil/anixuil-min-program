@@ -2,102 +2,36 @@
  * @Author: Anixuil
  * @Date: 2025-09-26 16:52:01
  * @LastEditors: Anixuil
- * @LastEditTime: 2025-10-11 16:45:49
+ * @LastEditTime: 2025-10-19 22:42:03
  * @Description: 我的页面
 -->
 <template>
-  <snapshot id="target">
-    <!-- <up-loading-page :loading="loading" loading-text="小羽狂飞中..." icon-size="30"></up-loading-page> -->
-    <loadingStatus ref="loadingStatusRef"></loadingStatus>
-    <view class="profile-wrapper">
-      <text class="text-blue font-bold text-lg">我的</text>
-      <!-- 判断是否已登录 -->
-      <template v-if="isLoggedIn">
-        <image :src="userInfo?.wxAvatarUrl" class="w100 h100 mb-5 rounded-full" />
-        <text class="text-lg font-bold">{{ userInfo?.nickName }}</text>
-        <up-button @click="handleLogout" class="mt-5">退出登录</up-button>
-      </template>
+  <!-- <up-loading-page :loading="loading" loading-text="小羽狂飞中..." icon-size="30"></up-loading-page> -->
+  <loadingStatus ref="loadingStatusRef"></loadingStatus>
+  <view class="profile-wrapper">
+    <text class="text-blue font-bold text-lg">我的</text>
+    <!-- 判断是否已登录 -->
+    <template v-if="isLoggedIn">
+      <image :src="userInfo?.wxAvatarUrl" class="w100 h100 mb-5 rounded-full" />
+      <text class="text-lg font-bold">{{ userInfo?.nickName }}</text>
+      <up-button v-if="!isWeChatBound" @click="bindWeChat">绑定微信</up-button>
+      <up-button @click="handleLogout" class="mt-5">退出登录</up-button>
+    </template>
 
-      <!-- 未登录时显示去登录按钮 -->
-      <template v-else>
-        <text>您还未登录，请先登录</text>
-        <up-button @click="goToLoginPage" class="mt-5">去登录</up-button>
-      </template>
+    <!-- 未登录时显示去登录按钮 -->
+    <template v-else>
+      <text>您还未登录，请先登录</text>
+      <up-button @click="goToLoginPage" class="mt-5">去登录</up-button>
       <up-button @click="WeChatLogin">微信一键登录</up-button>
-      <up-button v-show="canSnapshot" @click="takePhoto">截图</up-button>
-      <view class="camera-container">
-        <camera device-position="front" flash="off" @error="handleCameraError" ref="cameraRef" :audio="true"
-         style="width: 100vw;height: 200px;" @init="handleCameraInit"></camera>
-        <image v-if="!cameraShow" class="photo-overlay" :src="photoSrc" mode="aspectFill"></image>
-      </view>
-      <up-image :show-loading="true" :src="imageSrc" width="200px" height="400px"></up-image>
-    </view>
-  </snapshot>
+    </template>
+  </view>
 </template>
 
 <script lang="ts" setup>
 import AuthAPI from "@/api/auth";
+import UserAPI from "@/api/user";
 import { useUserStore } from "@/store/modules/user";
 
-const createSelectQuery = uni.createSelectorQuery()
-const imageSrc = ref('')
-const cameraRef = ref()
-const cameraShow = ref(true) // 是否显示摄像头
-const photoSrc = ref('') // 拍照图片
-
-// 拍照
-const takePhoto = () => {
-  const camera = uni.createCameraContext()
-  camera.takePhoto({
-    quality: 'high',
-    success: (res: any) => {
-      console.log('拍照成功', res);
-      photoSrc.value = res.tempImagePath
-      cameraShow.value = false
-      setTimeout(() => {
-        takeSnapshot()
-      }, 500)
-    },
-    fail: (res: any) => {
-      console.log('拍照失败', res);
-    }
-  })
-}
-
-// 截图
-const takeSnapshot = () => { 
-  // 调用截图前，先对摄像头画面进行截图，将图片转换为合适的格式进行展示，替换到摄像头画面
-  nextTick(() => {
-    createSelectQuery.select('#target').node(() => { }).exec(res => {
-      const node = res[0].node
-      node.takeSnapshot({
-        type: 'arraybuffer',
-        format: 'png',
-        success: (res: any) => {
-          console.log('截图成功', res);
-          // 将图片转为合适的格式进行展示 res.data是ArrayBuffer格式的
-          const base64 = uni.arrayBufferToBase64(res.data)
-          imageSrc.value = `data:image/png;base64,${base64}`
-          setTimeout(() => {
-            cameraShow.value = true
-          }, 1000)
-        },
-        fail(res: any) {
-          console.log('res', res);
-        }
-      })
-    })
-  })
-}
-
-const canSnapshot = ref(false) // 是否可以截图
-const handleCameraError = (err: any) => {
-  console.log('handleCameraError', err);
-}
-const handleCameraInit = (res: any) => {
-  console.log('handleCameraInit', res);
-  canSnapshot.value = true
-}
 // 使用 pinia
 const userStore = useUserStore();
 
@@ -116,6 +50,8 @@ const showToast = () => {
 const hideToast = () => {
   loadingStatusRef.value.hideToast()
 }
+
+const isWeChatBound = computed(() => userStore.userInfo?.wxOpenId);
 
 const isLoggedIn = computed(() => userStore.token);
 const userInfo = computed(() => userStore.userInfo);
@@ -156,7 +92,6 @@ const WeChatLogin = async () => {
 
 // 检测账号信息完整性
 const checkAccountIntegrity = async () => {
-  return
   // 如果未登录，直接返回
   if (!userStore.token) {
     uni.reLaunch({
@@ -167,30 +102,63 @@ const checkAccountIntegrity = async () => {
 
   // 检测token活性
   const tokenActive = await AuthAPI.checkTokenActive()
-  console.log('tokenActive', tokenActive);
   if (!tokenActive?.data) {
     uni.reLaunch({
       url: '/pages/login/index'
     })
     return
   }
-  
+
   // 检测判断是需要补充微信账户信息还是补充邮箱密码信息
-  let info = userStore.userInfo || {}
-  if (Object.keys(info).length === 0) { 
+  let info: any = userStore.userInfo || {}
+  if (Object.keys(info).length === 0) {
     // 获取用户信息
     info = await userStore.getUserInfo()
   }
-  const needBindWeChat = !info.wxOpenId
-  const needSetEmail = !info.userName && !info.userEmail
-  if (needBindWeChat || needSetEmail) {
-    console.log('needBindWeChat', needBindWeChat);
-    console.log('needSetEmail', needSetEmail);
+  // const needBindWeChat = !info.wxOpenId
+  const needSetEmail = !info.userName || (!info?.userEmail || info?.userEmail.indexOf('@wx.com') != -1) // 因为微信登录后，如果没有设置邮箱，邮箱会自动添加@wx.com后缀
+  if (needSetEmail) {
     uni.navigateTo({
-      url: `/pages/profile/complete-info?needType=${needBindWeChat ? 'wechat' : 'email'}`
+      url: `/pages/profile/complete-info?needType=email`
     })
   }
 };
+
+// 绑定微信
+const bindWeChat = async () => {
+  loadingStatusRef.value.showToast({
+    type: 'loading',
+    message: '小羽绑定中...',
+    duration: -1,
+  })
+  const code: string | number = await userStore.WeChatLogin() as string | number;
+  console.log('code', code);
+  UserAPI.bingWx({code}).then(res => {
+    console.log('res', res);
+    if (res) {
+      uni.showToast({
+        title: '绑定成功',
+        icon: 'success',
+        duration: 2000,
+      })
+      userStore.getUserInfo()
+    }else{
+      uni.showToast({
+        title: '绑定失败',
+        icon: 'none',
+        duration: 2000,
+      })
+    }
+  }).catch(err => {
+    uni.showToast({
+      title: '绑定失败',
+      icon: 'none',
+      duration: 2000,
+    })
+  }).finally(() => {
+    loadingStatusRef.value.hideToast();
+  })
+}
 
 // 页面展示检测如果没有绑定微信账号或着没有设置邮箱密码则跳到补充页面进行补充
 onShow(() => {
@@ -202,25 +170,14 @@ onShow(() => {
 .profile-wrapper {
   width: 100vw;
   height: 100vh;
-  background-color: #121826;
+  background-color: #ffffff;
   box-sizing: border-box;
   padding: 32rpx;
   overflow: auto;
-}
-
-.camera-container {
-  position: relative;
-  width: 100vw;
-  height: 200px;
-}
-
-.photo-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 10;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  color: #000000;
+  
+  text {
+    color: #000000;
+  }
 }
 </style>

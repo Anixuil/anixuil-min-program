@@ -2,7 +2,7 @@
  * @Author: Anixuil
  * @Date: 2025-09-26 16:52:01
  * @LastEditors: Anixuil
- * @LastEditTime: 2025-10-03 10:48:53
+ * @LastEditTime: 2025-10-19 22:46:11
  * @Description: 用户模块
  */
 //  src/store/module/user.ts
@@ -14,7 +14,8 @@ export const useUserStore = defineStore("user", () => {
   // 确保 token 是响应式的
   const token = ref<string>(uni.getStorageSync("token") || "");
   const userInfo = ref<UserInfo | null>(null);
-  
+
+  const weChatCode = ref<string | number>(''); // 微信登录code
 
   // 登录
   const login = async (data:{userEmail: string, userPassword: string}) => {
@@ -54,9 +55,9 @@ export const useUserStore = defineStore("user", () => {
         provider: 'weixin',
         success: (res) => {
           code = res.code;
-          token.value = `${code}`;
-          uni.setStorageSync("token", token.value);
-          resolve(token.value)
+          weChatCode.value = code;
+          uni.setStorageSync("weChatCode", weChatCode.value);
+          resolve(weChatCode.value)
         },
         fail: (err) => {
           // console.log('微信登录失败', err);
@@ -76,7 +77,7 @@ export const useUserStore = defineStore("user", () => {
         provider: 'weixin',
         success: (res) => {
           UserAPI.WeChatLogin({
-            code: token.value,
+            code: weChatCode.value,
             avatarUrl: res.userInfo.avatarUrl,
             nickName: res.userInfo.nickName
           }).then(loginRes => {

@@ -2,13 +2,12 @@
  * @Author: Anixuil
  * @Date: 2025-09-26 16:52:01
  * @LastEditors: Anixuil
- * @LastEditTime: 2025-10-03 10:25:02
+ * @LastEditTime: 2025-10-19 20:38:10
  * @Description: 请求封装
  */
 // src/utils/request.ts
 export default function request<T>(options: UniApp.RequestOptions): Promise<T> {
-  const token = uni.getStorageSync("token"); // 从本地缓存获取 token  
-  console.log('url', `${import.meta.env.VITE_APP_API_URL}${import.meta.env.VITE_APP_BASE_API}${options.url}`);
+  const token = uni.getStorageSync("token"); // 从本地缓存获取 token
   return new Promise((resolve, reject) => {
     uni.request({
       ...options,

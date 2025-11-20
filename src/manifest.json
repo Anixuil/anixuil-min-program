@@ -55,19 +55,7 @@
       "urlCheck": false,
       "minified": true
     },
-    "usingComponents": true,
-    /* 截图海报生成 */
-    "lazyCodeLoading": "requiredComponents",
-    "rendererOptions": {
-      "skyline": {
-        "defaultDisplayBlock": true, // 默认显示 block
-        "defaultContentBox": true, // 默认显示 content-box
-        "disableABTest": true, // 禁用 AB 测试
-        "sdkVersionBegin": "3.0.1", // 开始支持的 SDK 版本
-        "sdkVersionEnd": "15.255.255" // 结束支持的 SDK 版本
-      }
-    },
-    "componentFramework": "glass-easel" // 组件框架
+    "usingComponents": true
   },
   "mp-alipay": {
     "usingComponents": true
