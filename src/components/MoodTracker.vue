@@ -1,24 +1,24 @@
 <template>
-  <view class="p-30rpx bg-white rounded-16rpx shadow-sm m-20rpx">
-    <text class="text-36rpx font-bold text-center block mb-30rpx text-gray-800">今天的心情如何？</text>
-    <view class="flex justify-around flex-wrap mb-40rpx">
+  <view class="mood-tracker-wrapper">
+    <text class="mood-title">今天的心情如何？</text>
+    <view class="mood-list">
       <view
         v-for="(mood, index) in moods"
         :key="index"
-        class="flex flex-col items-center p-20rpx rounded-12rpx transition-all duration-300 w-120rpx"
-        :class="selectedMood === index ? 'transform scale-110 bg-gray-100 shadow-xs' : ''"
+        class="mood-item"
+        :class="selectedMood === index ? 'mood-item-selected' : ''"
         @click="selectMood(index)">
-        <text class="text-50rpx mb-10rpx">{{ mood.emoji }}</text>
-        <text class="text-24rpx text-gray-500">{{ mood.label }}</text>
+        <text class="mood-emoji">{{ mood.emoji }}</text>
+        <text class="mood-label">{{ mood.label }}</text>
       </view>
     </view>
-    <view v-if="selectedMood !== null" class="bg-gray-50 p-20rpx rounded-12rpx mb-30rpx flex flex-col items-center">
-      <text class="text-28rpx text-gray-800 mb-20rpx text-center">{{ getMoodMessage() }}</text>
-      <view class="h-60rpx w-60rpx rounded-full my-20rpx" :class="getAnimationClass()"></view>
+    <view v-if="selectedMood !== null" class="mood-message-wrapper">
+      <text class="mood-message">{{ getMoodMessage() }}</text>
+      <view class="mood-animation" :class="getAnimationClass()"></view>
     </view>
     <button
-      class="w-full py-20rpx px-40rpx text-28rpx rounded-10rpx mt-20rpx text-white"
-      :class="selectedMood === null ? 'bg-gray-400 text-gray-600' : 'bg-blue-500'"
+      class="mood-button"
+      :class="selectedMood === null ? 'mood-button-disabled' : 'mood-button-active'"
       @click="saveMood"
       :disabled="selectedMood === null">
       记录心情
@@ -56,15 +56,15 @@ const getAnimationClass = () => {
   const moodIndex = selectedMood.value;
   switch (moodIndex) {
     case 0:
-      return "happy-animation bg-yellow-400";
+      return "happy-animation";
     case 1:
-      return "calm-animation bg-blue-200";
+      return "calm-animation";
     case 2:
-      return "sad-animation bg-indigo-500";
+      return "sad-animation";
     case 3:
-      return "angry-animation bg-red-400";
+      return "angry-animation";
     case 4:
-      return "thinking-animation bg-purple-400";
+      return "thinking-animation";
     default:
       return "";
   }
@@ -83,8 +83,111 @@ const saveMood = () => {
 };
 </script>
 
-<style>
-/* 保留必要的动画关键帧 */
+<style scoped lang="scss">
+.mood-tracker-wrapper {
+  padding: 30rpx;
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  border: 2rpx solid #e0e0e0;
+  margin: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.mood-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+  margin-bottom: 30rpx;
+  color: #000000;
+}
+
+.mood-list {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-bottom: 40rpx;
+}
+
+.mood-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  transition: all 0.3s;
+  width: 120rpx;
+  cursor: pointer;
+  
+  .mood-emoji {
+    font-size: 50rpx;
+    margin-bottom: 10rpx;
+  }
+  
+  .mood-label {
+    font-size: 24rpx;
+    color: #666666;
+  }
+  
+  &.mood-item-selected {
+    transform: scale(1.1);
+    background-color: rgba(255, 107, 53, 0.1);
+    border: 2rpx solid #FF6B35;
+    
+    .mood-label {
+      color: #FF6B35;
+      font-weight: bold;
+    }
+  }
+}
+
+.mood-message-wrapper {
+  background-color: rgba(255, 107, 53, 0.05);
+  padding: 20rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid rgba(255, 107, 53, 0.2);
+  margin-bottom: 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  .mood-message {
+    font-size: 28rpx;
+    color: #000000;
+    margin-bottom: 20rpx;
+    text-align: center;
+  }
+  
+  .mood-animation {
+    height: 60rpx;
+    width: 60rpx;
+    border-radius: 50%;
+    margin: 20rpx 0;
+    background-color: #FF6B35;
+  }
+}
+
+.mood-button {
+  width: 100%;
+  padding: 20rpx 40rpx;
+  font-size: 28rpx;
+  border-radius: 10rpx;
+  margin-top: 20rpx;
+  border: none;
+  
+  &.mood-button-active {
+    background-color: #FF6B35;
+    color: #ffffff;
+  }
+  
+  &.mood-button-disabled {
+    background-color: #f5f5f5;
+    color: #cccccc;
+    border: 2rpx solid #e0e0e0;
+  }
+}
+
+/* 动画关键帧 */
 @keyframes pulse {
   0% {
     transform: scale(1);
@@ -162,21 +265,26 @@ const saveMood = () => {
 /* 应用动画 */
 .happy-animation {
   animation: pulse 1.5s infinite;
+  background-color: #FF6B35;
 }
 
 .calm-animation {
   animation: float 3s infinite;
+  background-color: #FF6B35;
 }
 
 .sad-animation {
   animation: shrink 2s infinite;
+  background-color: #FF6B35;
 }
 
 .angry-animation {
   animation: shake 0.5s infinite;
+  background-color: #FF6B35;
 }
 
 .thinking-animation {
   animation: rotate 3s infinite;
+  background-color: #FF6B35;
 }
 </style>

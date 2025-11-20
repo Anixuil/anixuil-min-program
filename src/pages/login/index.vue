@@ -8,11 +8,6 @@
   <up-notify ref="notifyRef"></up-notify>
   <!-- 主容器 -->
   <view class="login-container">
-    <!-- 装饰元素 -->
-    <view class="decoration-bg">
-      <view class="decoration-circle decoration-circle-1"></view>
-      <view class="decoration-circle decoration-circle-2"></view>
-    </view>
 
     <!-- 登录卡片 -->
     <view class="login-card">
@@ -36,13 +31,13 @@
 
         <!-- 登录表单 -->
         <view class="login-form">
-          <up-form :model="form" :rules="rules" ref="formRef" label-position="top" label-width="100rpx"
-            :labelStyle="{ color: '#00FF94' }">
+            <up-form :model="form" :rules="rules" ref="formRef" label-position="top" label-width="100rpx"
+            :labelStyle="{ color: '#FF6B35' }">
             <up-form-item label="邮箱" prop="userEmail">
-              <up-input color="#fff" placeholder="请输入邮箱" v-model="form.userEmail" />
+              <up-input color="#000" placeholder="请输入邮箱" v-model="form.userEmail" />
             </up-form-item>
             <up-form-item label="密码" prop="userPassword">
-              <up-input type="password" color="#fff" placeholder="请输入密码" v-model="form.userPassword" />
+              <up-input type="password" color="#000" placeholder="请输入密码" v-model="form.userPassword" />
             </up-form-item>
           </up-form>
 
@@ -129,6 +124,11 @@ const handleLogin = async () => {
     }
 
     isLoading.value = true;
+    loadingStatusRef.value.showToast({
+      type: 'loading',
+      message: '小羽狂飞中...',
+      duration: -1,
+    });
     const params = {
       userEmail: form.value.userEmail,
       userPassword: form.value.userPassword,
@@ -164,6 +164,7 @@ const handleLogin = async () => {
     })
   } finally {
     isLoading.value = false;
+    loadingStatusRef.value.hideToast();
   }
 };
 
@@ -205,16 +206,17 @@ const WeChatLogin = async () => {
 </script>
 
 <style scoped lang="scss">
-// 颜色变量
-$primary-color: #00FF94; // 霓虹绿 - 主色调
-$secondary-color: #00A3FF; // 亮蓝 - 强调色
-$dark-bg: #121826; // 深色背景
-$darker-bg: #0A0F1A; // 更深色背景
-$dark-card: #1E293B; // 卡片深色背景
+// 颜色变量 - 简约竞技风格（白色背景，橙色主题）
+$primary-color: #FF6B35; // 主色调：活力橙色（体现竞技和羽毛球运动）
+$secondary-color: #FF6B35; // 强调色：橙色
+$dark-bg: #ffffff; // 背景纯白色
+$darker-bg: #ffffff; // 卡片背景纯白色
+$dark-card: #ffffff; // 卡片背景纯白色
 $text-white: #ffffff;
-$text-gray: #9CA3AF;
-$text-gray-light: #D1D5DB;
-$border-gray: #374151;
+$text-black: #000000;
+$text-gray: #666666;
+$text-gray-light: #999999;
+$border-gray: #e0e0e0;
 $wechat-green: #07C160;
 
 // 动画关键帧
@@ -232,35 +234,20 @@ $wechat-green: #07C160;
 
 @keyframes glow {
   0% {
-    box-shadow: 0 0 5px rgba(0, 255, 148, 0.5);
+    box-shadow: 0 0 5px rgba(255, 107, 53, 0.5);
   }
 
   100% {
-    box-shadow: 0 0 20px rgba(0, 255, 148, 0.8);
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.8);
   }
 }
 
-@keyframes pulse-slow {
-
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-
-  50% {
-    opacity: 0.6;
-  }
-}
 
 // 主容器
 .login-container {
   height: 100vh;
   box-sizing: border-box;
-  background: $dark-bg;
-  background-image:
-    linear-gradient(rgba(0, 255, 148, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 148, 0.05) 1px, transparent 1px);
-  background-size: 30px 30px;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -269,39 +256,7 @@ $wechat-green: #07C160;
   overflow: hidden;
 }
 
-// 装饰背景
-.decoration-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-
-  .decoration-circle-1 {
-    position: absolute;
-    top: 80rpx;
-    left: 80rpx;
-    width: 320rpx;
-    height: 320rpx;
-    background: rgba(0, 255, 148, 0.05);
-    border-radius: 50%;
-    filter: blur(64rpx);
-    animation: pulse-slow 3s ease-in-out infinite;
-  }
-
-  .decoration-circle-2 {
-    position: absolute;
-    bottom: 80rpx;
-    right: 80rpx;
-    width: 480rpx;
-    height: 480rpx;
-    background: rgba(0, 163, 255, 0.05);
-    border-radius: 50%;
-    filter: blur(96rpx);
-    animation: pulse-slow 3s ease-in-out infinite 1.5s;
-  }
-}
+// 装饰背景 - 已移除，使用纯色背景
 
 
 .shuttlecock-svg {
@@ -314,7 +269,7 @@ $wechat-green: #07C160;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    border: 2rpx solid rgba(0, 255, 148, 0.3);
+    border: 2rpx solid #000000;
     border-radius: 50%;
 
     &.shuttlecock-circle-1 {
@@ -345,7 +300,7 @@ $wechat-green: #07C160;
     &::after {
       content: '';
       position: absolute;
-      background: rgba(0, 255, 148, 0.5);
+      background: #000000;
     }
 
     &::before {
@@ -372,9 +327,9 @@ $wechat-green: #07C160;
     transform: translateX(-50%);
     width: 30%;
     height: 30%;
-    background: white;
+    background: #ffffff;
     border-radius: 50%;
-    box-shadow: 0 0 10rpx rgba(0, 255, 148, 0.5);
+    border: 2rpx solid #000000;
   }
 
   .shuttlecock-feather {
@@ -387,7 +342,6 @@ $wechat-green: #07C160;
     border-left: 12rpx solid transparent;
     border-right: 12rpx solid transparent;
     border-top: 24rpx solid $primary-color;
-    filter: drop-shadow(0 0 6rpx rgba(0, 255, 148, 0.8));
   }
 }
 
@@ -397,16 +351,16 @@ $wechat-green: #07C160;
   z-index: 10;
   width: 100%;
   max-width: 600rpx;
-  background: $dark-card;
+  background: #ffffff;
   border-radius: 32rpx;
-  border: 2rpx solid rgba(0, 255, 148, 0.2);
-  box-shadow: 0 20rpx 40rpx rgba(0, 0, 0, 0.3);
+  border: 2rpx solid #e0e0e0;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
 
 .card-top-bar {
   height: 4rpx;
-  background: linear-gradient(90deg, $primary-color, $secondary-color);
+  background: $primary-color;
 }
 
 .card-content {
@@ -429,8 +383,8 @@ $wechat-green: #07C160;
   width: 128rpx;
   height: 128rpx;
   border-radius: 50%;
-  background: $darker-bg;
-  border: 2rpx solid rgba(0, 255, 148, 0.3);
+  background: #ffffff;
+  border: 2rpx solid $primary-color;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -448,9 +402,8 @@ $wechat-green: #07C160;
     transform: translateX(-50%);
     width: 24rpx;
     height: 24rpx;
-    background: white;
+    background: $primary-color;
     border-radius: 50%;
-    box-shadow: 0 0 0 4rpx rgba(0, 255, 148, 0.3), 0 0 16rpx rgba(0, 255, 148, 0.5);
   }
 
   .shuttlecock-icon-feather {
@@ -463,7 +416,6 @@ $wechat-green: #07C160;
     border-left: 12rpx solid transparent;
     border-right: 12rpx solid transparent;
     border-top: 24rpx solid $primary-color;
-    filter: drop-shadow(0 0 6rpx rgba(0, 255, 148, 0.8));
   }
 }
 
@@ -471,15 +423,14 @@ $wechat-green: #07C160;
   display: block;
   font-size: 48rpx;
   font-weight: bold;
-  color: $text-white;
+  color: #000000;
   margin-bottom: 16rpx;
-  text-shadow: 0 0 16rpx rgba(0, 255, 148, 0.6);
 }
 
 .app-subtitle {
   display: block;
   font-size: 28rpx;
-  color: $text-gray;
+  color: $text-gray-light;
 }
 
 // 表单样式
@@ -492,7 +443,7 @@ $wechat-green: #07C160;
     display: block;
     font-size: 28rpx;
     font-weight: 500;
-    color: $text-gray-light;
+    color: $text-black;
     margin-bottom: 8rpx;
   }
 
@@ -515,14 +466,14 @@ $wechat-green: #07C160;
   position: relative;
   display: flex;
   align-items: center;
-  background: $darker-bg;
+  background: #ffffff;
   border: 2rpx solid $border-gray;
   border-radius: 16rpx;
   transition: all 0.3s ease;
 
   &.input-focused {
-    border-color: rgba(0, 255, 148, 0.8);
-    box-shadow: 0 0 16rpx rgba(0, 255, 148, 0.3);
+    border-color: $primary-color;
+    box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.1);
     transform: scale(1.01);
   }
 }
@@ -539,11 +490,11 @@ $wechat-green: #07C160;
   padding: 24rpx 24rpx 24rpx 80rpx;
   background: transparent;
   border: none;
-  color: $text-white;
+  color: $text-black;
   font-size: 28rpx;
 
   &::placeholder {
-    color: $text-gray;
+    color: $text-gray-light;
   }
 
   &:focus {
@@ -588,26 +539,25 @@ $wechat-green: #07C160;
 
 .login-btn {
   background: $primary-color;
-  color: $darker-bg;
+  color: #ffffff;
   animation: glow 2s ease-in-out infinite alternate;
 
   &:hover {
-    background: rgba(0, 255, 148, 0.9);
+    background: #E85A2A;
   }
 
   &.btn-loading {
-    opacity: 0.8;
     animation: none;
   }
 }
 
 .wechat-btn {
-  background: rgba(7, 193, 96, 0.1);
+  background: #ffffff;
   color: $wechat-green;
-  border: 2rpx solid rgba(7, 193, 96, 0.3);
+  border: 2rpx solid $wechat-green;
 
   &:hover {
-    background: rgba(7, 193, 96, 0.2);
+    background: rgba(7, 193, 96, 0.05);
   }
 }
 
@@ -705,3 +655,4 @@ $wechat-green: #07C160;
   margin-top: 30rpx;
 }
 </style>
+

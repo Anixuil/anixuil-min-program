@@ -18,7 +18,7 @@
 .schedule-wrapper {
   width: 100vw;
   height: 100vh;
-  background-color: #121826;
+  background-color: #ffffff;
   box-sizing: border-box;
   padding: 32rpx;
 }
