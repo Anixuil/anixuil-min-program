@@ -53,5 +53,7 @@ module.exports = {
         ignoreAtRules: ["apply", "use", "forward"],
       },
     ],
+    "declaration-property-value-no-unknown": null,
+    "media-feature-name-value-no-unknown": null,
   },
 };

@@ -28,45 +28,50 @@ const UserAPI = {
       url: `${USER_BASE_URL}/wxLogin`,
       method: "POST",
       data,
-    })
+    });
   },
 
   // 发送邮箱验证码
-  sendEmailCode(data: { userEmail: string, emailTitle: string }): Promise<any> {
+  sendEmailCode(data: { userEmail: string; emailTitle: string }): Promise<any> {
     return request({
       url: `${USER_BASE_URL}/sendEmailCode`,
       method: "POST",
       data,
-    })
+    });
   },
 
   // 验证邮箱验证码
-  verifyEmailCode(data: { userEmail: string, code: string }): Promise<any> {
+  verifyEmailCode(data: { userEmail: string; code: string }): Promise<any> {
     return request({
       url: `${USER_BASE_URL}/verifyEmailCode`,
       method: "POST",
       data,
-    })
+    });
   },
 
   // 更改用户信息
-  updateUserInfo(data: { userId: number, userEmail?: string, userName?: string, userAge?: string, userAlias?: string }): Promise<any> {
+  updateUserInfo(data: {
+    userId: number;
+    userEmail?: string;
+    userName?: string;
+    userAge?: string;
+    userAlias?: string;
+  }): Promise<any> {
     return request({
       url: `${USER_BASE_URL}/updateUserInfo`,
       method: "PUT",
       data,
-    })
+    });
   },
 
   // 绑定微信
   bingWx(data: { code: string | number }): Promise<any> {
     return request({
       url: `${USER_BASE_URL}/bindWx`,
-      method: 'POST',
+      method: "POST",
       data,
-    })
-
-  }
+    });
+  },
 };
 export default UserAPI;
 

@@ -16,11 +16,11 @@ const AuthAPI = {
    * @param password 密码
    * @returns 返回 token
    */
-  login(data: {userEmail: string, userPassword: string}): Promise<LoginResult> {
+  login(data: { userEmail: string; userPassword: string }): Promise<LoginResult> {
     return request<LoginResult>({
       url: "/sys-user/login",
       method: "POST",
-      data
+      data,
     });
   },
 
@@ -37,10 +37,10 @@ const AuthAPI = {
   // 检测token活性
   checkTokenActive(): Promise<any> {
     return request({
-      url: '/testAuth',
-      method: 'GET',
-    })
-  }
+      url: "/testAuth",
+      method: "GET",
+    });
+  },
 };
 
 export default AuthAPI;

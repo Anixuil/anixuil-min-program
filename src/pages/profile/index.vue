@@ -35,21 +35,21 @@ import { useUserStore } from "@/store/modules/user";
 // 使用 pinia
 const userStore = useUserStore();
 
-const loadingStatusRef = ref() // 获取 toast 实例
+const loadingStatusRef = ref(); // 获取 toast 实例
 
 // 显示 toast
 const showToast = () => {
   loadingStatusRef.value.showToast({
-    type: 'loading',
-    message: '小羽狂飞中...',
+    type: "loading",
+    message: "小羽狂飞中...",
     duration: -1,
-  })
-}
+  });
+};
 
 // 隐藏 toast
 const hideToast = () => {
-  loadingStatusRef.value.hideToast()
-}
+  loadingStatusRef.value.hideToast();
+};
 
 const isWeChatBound = computed(() => userStore.userInfo?.wxOpenId);
 
@@ -64,118 +64,124 @@ const goToLoginPage = () => {
 // 退出登录处理
 const handleLogout = async () => {
   try {
-    showToast()
+    showToast();
     await userStore.logout();
     uni.showToast({ title: "已退出登录", icon: "success" });
   } catch (error) {
-    console.error('退出登录错误:', error);
+    console.error("退出登录错误:", error);
     uni.showToast({ title: "退出登录失败", icon: "error" });
   } finally {
-    hideToast()
+    hideToast();
     uni.reLaunch({
-      url: '/pages/login/index'
-    })
+      url: "/pages/login/index",
+    });
   }
 };
 
 // 微信一键登录
 const WeChatLogin = async () => {
   try {
-    showToast()
-    await userStore.WeChatLogin()
-    await userStore.WeChatGetUserInfo()
-  } catch (error) {
+    showToast();
+    await userStore.WeChatLogin();
+    await userStore.WeChatGetUserInfo();
+  } catch (err) {
+    console.error("微信登录错误:", err);
+    uni.showToast({ title: "微信登录失败", icon: "none" });
   } finally {
-    hideToast()
+    hideToast();
   }
-}
+};
 
 // 检测账号信息完整性
 const checkAccountIntegrity = async () => {
   // 如果未登录，直接返回
   if (!userStore.token) {
     uni.reLaunch({
-      url: '/pages/login/index'
-    })
-    return
+      url: "/pages/login/index",
+    });
+    return;
   }
 
   // 检测token活性
-  const tokenActive = await AuthAPI.checkTokenActive()
+  const tokenActive = await AuthAPI.checkTokenActive();
   if (!tokenActive?.data) {
     uni.reLaunch({
-      url: '/pages/login/index'
-    })
-    return
+      url: "/pages/login/index",
+    });
+    return;
   }
 
   // 检测判断是需要补充微信账户信息还是补充邮箱密码信息
-  let info: any = userStore.userInfo || {}
+  let info: any = userStore.userInfo || {};
   if (Object.keys(info).length === 0) {
     // 获取用户信息
-    info = await userStore.getUserInfo()
+    info = await userStore.getUserInfo();
   }
   // const needBindWeChat = !info.wxOpenId
-  const needSetEmail = !info.userName || (!info?.userEmail || info?.userEmail.indexOf('@wx.com') != -1) // 因为微信登录后，如果没有设置邮箱，邮箱会自动添加@wx.com后缀
+  const needSetEmail = !info.userName || !info?.userEmail || info?.userEmail.indexOf("@wx.com") != -1; // 因为微信登录后，如果没有设置邮箱，邮箱会自动添加@wx.com后缀
   if (needSetEmail) {
     uni.navigateTo({
-      url: `/pages/profile/complete-info?needType=email`
-    })
+      url: "/pages/profile/complete-info?needType=email",
+    });
   }
 };
 
 // 绑定微信
 const bindWeChat = async () => {
   loadingStatusRef.value.showToast({
-    type: 'loading',
-    message: '小羽绑定中...',
+    type: "loading",
+    message: "小羽绑定中...",
     duration: -1,
-  })
-  const code: string | number = await userStore.WeChatLogin() as string | number;
-  console.log('code', code);
-  UserAPI.bingWx({code}).then(res => {
-    console.log('res', res);
-    if (res) {
-      uni.showToast({
-        title: '绑定成功',
-        icon: 'success',
-        duration: 2000,
-      })
-      userStore.getUserInfo()
-    }else{
-      uni.showToast({
-        title: '绑定失败',
-        icon: 'none',
-        duration: 2000,
-      })
-    }
-  }).catch(err => {
-    uni.showToast({
-      title: '绑定失败',
-      icon: 'none',
-      duration: 2000,
+  });
+  const code: string | number = (await userStore.WeChatLogin()) as string | number;
+  console.log("code", code);
+  UserAPI.bingWx({ code })
+    .then((res) => {
+      console.log("res", res);
+      if (res) {
+        uni.showToast({
+          title: "绑定成功",
+          icon: "success",
+          duration: 2000,
+        });
+        userStore.getUserInfo();
+      } else {
+        uni.showToast({
+          title: "绑定失败",
+          icon: "none",
+          duration: 2000,
+        });
+      }
     })
-  }).finally(() => {
-    loadingStatusRef.value.hideToast();
-  })
-}
+    .catch((err) => {
+      console.error("绑定微信错误:", err);
+      uni.showToast({
+        title: "绑定失败",
+        icon: "none",
+        duration: 2000,
+      });
+    })
+    .finally(() => {
+      loadingStatusRef.value.hideToast();
+    });
+};
 
 // 页面展示检测如果没有绑定微信账号或着没有设置邮箱密码则跳到补充页面进行补充
 onShow(() => {
   checkAccountIntegrity();
-})
+});
 </script>
 
 <style lang="scss" scoped>
 .profile-wrapper {
+  box-sizing: border-box;
   width: 100vw;
   height: 100vh;
-  background-color: #ffffff;
-  box-sizing: border-box;
   padding: 32rpx;
   overflow: auto;
   color: #000000;
-  
+  background-color: #ffffff;
+
   text {
     color: #000000;
   }

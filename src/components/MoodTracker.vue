@@ -86,26 +86,26 @@ const saveMood = () => {
 <style scoped lang="scss">
 .mood-tracker-wrapper {
   padding: 30rpx;
-  background-color: #ffffff;
-  border-radius: 16rpx;
-  border: 2rpx solid #e0e0e0;
   margin: 20rpx;
+  background-color: #ffffff;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 16rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 .mood-title {
-  font-size: 36rpx;
-  font-weight: bold;
-  text-align: center;
   display: block;
   margin-bottom: 30rpx;
+  font-size: 36rpx;
+  font-weight: bold;
   color: #000000;
+  text-align: center;
 }
 
 .mood-list {
   display: flex;
-  justify-content: space-around;
   flex-wrap: wrap;
+  justify-content: space-around;
   margin-bottom: 40rpx;
 }
 
@@ -113,76 +113,76 @@ const saveMood = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 120rpx;
   padding: 20rpx;
+  cursor: pointer;
   border-radius: 12rpx;
   transition: all 0.3s;
-  width: 120rpx;
-  cursor: pointer;
-  
+
   .mood-emoji {
-    font-size: 50rpx;
     margin-bottom: 10rpx;
+    font-size: 50rpx;
   }
-  
+
   .mood-label {
     font-size: 24rpx;
     color: #666666;
   }
-  
+
   &.mood-item-selected {
-    transform: scale(1.1);
     background-color: rgba(255, 107, 53, 0.1);
-    border: 2rpx solid #FF6B35;
-    
+    border: 2rpx solid #ff6b35;
+    transform: scale(1.1);
+
     .mood-label {
-      color: #FF6B35;
       font-weight: bold;
+      color: #ff6b35;
     }
   }
 }
 
 .mood-message-wrapper {
-  background-color: rgba(255, 107, 53, 0.05);
-  padding: 20rpx;
-  border-radius: 12rpx;
-  border: 2rpx solid rgba(255, 107, 53, 0.2);
-  margin-bottom: 30rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  
+  padding: 20rpx;
+  margin-bottom: 30rpx;
+  background-color: rgba(255, 107, 53, 0.05);
+  border: 2rpx solid rgba(255, 107, 53, 0.2);
+  border-radius: 12rpx;
+
   .mood-message {
+    margin-bottom: 20rpx;
     font-size: 28rpx;
     color: #000000;
-    margin-bottom: 20rpx;
     text-align: center;
   }
-  
+
   .mood-animation {
-    height: 60rpx;
     width: 60rpx;
-    border-radius: 50%;
+    height: 60rpx;
     margin: 20rpx 0;
-    background-color: #FF6B35;
+    background-color: #ff6b35;
+    border-radius: 50%;
   }
 }
 
 .mood-button {
   width: 100%;
   padding: 20rpx 40rpx;
-  font-size: 28rpx;
-  border-radius: 10rpx;
   margin-top: 20rpx;
+  font-size: 28rpx;
   border: none;
-  
+  border-radius: 10rpx;
+
   &.mood-button-active {
-    background-color: #FF6B35;
     color: #ffffff;
+    background-color: #ff6b35;
   }
-  
+
   &.mood-button-disabled {
-    background-color: #f5f5f5;
     color: #cccccc;
+    background-color: #f5f5f5;
     border: 2rpx solid #e0e0e0;
   }
 }
@@ -264,27 +264,27 @@ const saveMood = () => {
 
 /* 应用动画 */
 .happy-animation {
+  background-color: #ff6b35;
   animation: pulse 1.5s infinite;
-  background-color: #FF6B35;
 }
 
 .calm-animation {
+  background-color: #ff6b35;
   animation: float 3s infinite;
-  background-color: #FF6B35;
 }
 
 .sad-animation {
+  background-color: #ff6b35;
   animation: shrink 2s infinite;
-  background-color: #FF6B35;
 }
 
 .angry-animation {
+  background-color: #ff6b35;
   animation: shake 0.5s infinite;
-  background-color: #FF6B35;
 }
 
 .thinking-animation {
+  background-color: #ff6b35;
   animation: rotate 3s infinite;
-  background-color: #FF6B35;
 }
 </style>

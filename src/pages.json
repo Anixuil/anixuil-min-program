@@ -23,9 +23,18 @@
       }
     },
     {
+      "path": "pages/scheduleDetails/index",
+      "style": {
+        "navigationBarTitleText": "报名信息",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black",
+        "enablePullDownRefresh": false
+      }
+    },
+    {
       "path": "pages/profile/index",
       "style": {
-        "navigationBarTitleText": "我的-羽球对决",
+        "navigationBarTitleText": "我的-羽球对决"
       }
     },
     {
