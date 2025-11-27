@@ -91,12 +91,9 @@ const rules = ref({
 // 使用 pinia
 const userStore = useUserStore();
 
-// 注册
+// 注册入口（关键节点：跳转到注册页面）
 const handleRegister = () => {
-  uni.showToast({
-    title: "功能开发中...",
-    icon: "none",
-  });
+  uni.navigateTo({ url: "/pages/register/index" });
 };
 
 const notifyRef = ref();

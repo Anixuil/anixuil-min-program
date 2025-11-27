@@ -72,6 +72,14 @@ const UserAPI = {
       data,
     });
   },
+  // 用户注册
+  register(data: { userName: string; userPassword: string; userEmail: string }): Promise<any> {
+    return request({
+      url: `${USER_BASE_URL}/register`,
+      method: "POST",
+      data,
+    });
+  },
 };
 export default UserAPI;
 

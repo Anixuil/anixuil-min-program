@@ -44,6 +44,14 @@
       }
     },
     {
+      "path": "pages/register/index",
+      "style": {
+        "navigationBarTitleText": "注册-羽球对决",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
       "path": "pages/profile/complete-info",
       "style": {
         "navigationBarTitleText": "补充信息-羽球对决"
