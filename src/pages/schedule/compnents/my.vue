@@ -10,12 +10,32 @@
 </template>
 
 <script lang="ts" setup>
-import { formatSub, navigateToDetails, type ScheduleItem } from "@/pages/schedule/shared";
+import { navigateToDetails } from "@/pages/schedule/shared";
+import { useMatchStore } from "@/store/modules/match";
+import { useUserStore } from "@/store/modules/user";
+import { useDictStore } from "@/store/modules/dict";
 
-const list: ScheduleItem[] = [
-  { id: "M1", title: "俱乐部内部赛｜我发起", time: "2025-10-05 19:00", place: "俱乐部馆", type: "内部赛" },
-];
-const goDetails = (item: ScheduleItem) => navigateToDetails(item.id);
+const userStore = useUserStore();
+const matchStore = useMatchStore();
+const dictStore = useDictStore();
+
+onLoad(async () => {
+  await dictStore.loadMatchStatus();
+  await matchStore.fetchList();
+});
+
+const list = computed(() =>
+  matchStore.list
+    .filter((m) => (m.createBy || "") === (userStore.userInfo?.userId || ""))
+    .map((m) => ({ ...m, id: m.id, title: `${m.name}｜我发起` })),
+);
+
+const formatSub = (item: any) => {
+  const statusLabel = dictStore.findLabel(item.status || "");
+  return `${item.planStartTime || ""}｜${item.description || ""}｜${statusLabel}`;
+};
+
+const goDetails = (item: any) => navigateToDetails(item.id);
 </script>
 
 <style lang="scss" scoped>

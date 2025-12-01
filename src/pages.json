@@ -56,6 +56,14 @@
       "style": {
         "navigationBarTitleText": "补充信息-羽球对决"
       }
+    },
+    {
+      "path": "pages/matchDetails/index",
+      "style": {
+        "navigationBarTitleText": "对局详情-羽球对决",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black"
+      }
     }
   ],
   "globalStyle": {

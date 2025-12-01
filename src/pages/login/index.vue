@@ -123,7 +123,7 @@ const handleLogin = async () => {
     };
     await userStore.login(params);
 
-    if (userStore.token) {
+    if (userStore.token && userStore.token.length > 0) {
       uni.showToast({
         title: "登录成功",
         icon: "success",

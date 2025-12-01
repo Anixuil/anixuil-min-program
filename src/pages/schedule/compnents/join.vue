@@ -10,12 +10,39 @@
 </template>
 
 <script lang="ts" setup>
-import { formatSub, navigateToDetails, type ScheduleItem } from "@/pages/schedule/shared";
+import { navigateToDetails } from "@/pages/schedule/shared";
+import { usePlayerStore } from "@/store/modules/player";
+import { useMatchStore } from "@/store/modules/match";
+import { useUserStore } from "@/store/modules/user";
+import { useDictStore } from "@/store/modules/dict";
 
-const list: ScheduleItem[] = [
-  { id: "J1", title: "线上报名赛｜我参与", time: "2025-10-06 14:00", place: "羽球馆C", type: "公开赛" },
-];
-const goDetails = (item: ScheduleItem) => navigateToDetails(item.id);
+const userStore = useUserStore();
+const playerStore = usePlayerStore();
+const matchStore = useMatchStore();
+const dictStore = useDictStore();
+
+onLoad(async () => {
+  await dictStore.loadMatchStatus();
+  await playerStore.fetchList();
+  await matchStore.fetchList();
+});
+
+const myMatchIds = computed(() =>
+  playerStore.list.filter((p) => p.userId === userStore.userInfo?.userId).map((p) => p.matchId),
+);
+
+const list = computed(() =>
+  matchStore.list
+    .filter((m) => myMatchIds.value.includes(m.id))
+    .map((m) => ({ ...m, id: m.id, title: `${m.name}｜我参与` })),
+);
+
+const formatSub = (item: any) => {
+  const statusLabel = dictStore.findLabel(item.status || "");
+  return `${item.planStartTime || ""}｜${item.description || ""}｜${statusLabel}`;
+};
+
+const goDetails = (item: any) => navigateToDetails(item.id);
 </script>
 
 <style lang="scss" scoped>

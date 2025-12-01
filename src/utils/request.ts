@@ -19,24 +19,26 @@ export default function request<T>(options: UniApp.RequestOptions): Promise<T> {
       },
       success: (response) => {
         const resData = response.data as ResponseData<T>;
-        // 业务状态码 200 表示成功
-        if (resData.code == "200") {
-          resolve(resData.data);
-          // uni.showToast({
-          //   title: resData.message || "业务处理成功",
-          //   icon: "success",
-          //   duration: 2000,
-          // });
+        const status = (response as any).statusCode;
+        const codeNum =
+          typeof (resData as any).code === "string" ? parseInt((resData as any).code, 10) : (resData as any).code;
+        if (status === 401 || codeNum === 401) {
+          uni.removeStorageSync("token");
+          uni.removeStorageSync("userId");
+          uni.showToast({ title: "登录状态已过期，请先登录", icon: "none", duration: 1500 });
+          setTimeout(() => {
+            uni.reLaunch({ url: "/pages/login/index" });
+          }, 1200);
+          reject({ message: "Unauthorized", code: 401 });
+          return;
+        }
+        const codeVal = (resData as any).code;
+        const isOk = codeVal === 200 || codeVal === "200";
+        if (isOk) {
+          resolve(resData.data as T);
         } else {
-          uni.showToast({
-            title: resData.message || "业务处理失败",
-            icon: "none",
-            duration: 2000,
-          });
-          reject({
-            message: resData.message || "业务处理失败",
-            code: resData.code,
-          });
+          uni.showToast({ title: resData.message || "业务处理失败", icon: "none", duration: 2000 });
+          reject({ message: resData.message || "业务处理失败", code: resData.code });
         }
       },
       fail: (error) => {

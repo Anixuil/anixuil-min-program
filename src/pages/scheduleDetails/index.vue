@@ -1,111 +1,120 @@
 <template>
   <view class="page">
-    <!-- 顶部：赛事标题与基本信息配置 -->
-    <view class="card">
-      <view class="card-title">{{ title }}</view>
-      <view class="row">
-        <text class="label">比赛时间</text>
-        <input v-model="basicInfo.time" class="input" placeholder="添加比赛时间" />
-      </view>
-      <view class="row">
-        <text class="label">比赛地点</text>
-        <input v-model="basicInfo.place" class="input" placeholder="添加比赛地点" />
-      </view>
+    <!-- 顶部：赛事标题与三段内容 Tab -->
+    <view class="page-title">{{ title }}</view>
+    <view class="tabs">
+      <view :class="['tab', active === 'info' ? 'tab-active' : '']" @click="active = 'info'">报名信息</view>
+      <view :class="['tab', active === 'score' ? 'tab-active' : '']" @click="active = 'score'">对局计分</view>
+      <view :class="['tab', active === 'result' ? 'tab-active' : '']" @click="active = 'result'">比赛成绩</view>
     </view>
-
-    <!-- 报名名单：可增减条目，每一组显示为卡片行 -->
-    <view class="card">
-      <view class="card-title">报名名单</view>
-      <view class="signup-list">
-        <view v-for="(p, i) in participants" :key="i" class="signup-item">
-          <view class="name">{{ p.name }}</view>
-          <button class="btn-mini" @click="removeParticipant(i)">删除</button>
-        </view>
-      </view>
-      <view class="actions">
-        <button class="btn" @click="addParticipant">增加一组</button>
-      </view>
-    </view>
-
-    <!-- 比赛规则：数组形式，每条规则一行，可增删 -->
-    <view class="card">
-      <view class="card-title">比赛规则</view>
-      <view class="rule-list">
-        <view v-for="(r, i) in rules" :key="i" class="rule-item">
-          <input v-model="rules[i]" class="input" placeholder="输入规则" />
-          <button class="btn-mini" @click="removeRule(i)">删除</button>
-        </view>
-      </view>
-      <view class="actions">
-        <button class="btn" @click="addRule">添加比赛规则</button>
-      </view>
+    <view class="tab-content">
+      <Info v-if="active === 'info'" :matchId="matchId" />
+      <Score v-if="active === 'score'" :matchId="matchId" />
+      <Result v-if="active === 'result'" :matchId="matchId" />
     </view>
 
     <!-- 底部操作区：示例按钮 -->
     <view class="footer">
-      <button class="btn-secondary">邀请报名</button>
-      <button class="btn-primary">生成对阵</button>
+      <button class="btn-secondary" @click="invite">邀请报名</button>
+      <button class="btn-primary" @click="openConfirm">生成对阵</button>
     </view>
+
+    <!-- 生成对阵确认弹窗（关键节点：对阵参数选择与确认） -->
+    <up-modal
+      :show="confirmShow"
+      title="确认设置"
+      @close="confirmShow = false"
+      @confirm="confirmGenerate"
+      confirmText="生成对阵"
+      cancelText="取消">
+      <view class="confirm-content">
+        <view class="confirm-row">
+          <text class="confirm-title">参与比赛人数：{{ participants.length }} 人</text>
+        </view>
+        <view class="confirm-row">
+          <text class="confirm-subtitle">女生设置</text>
+          <view class="confirm-options">
+            <up-tag
+              :type="femaleOpt === 'standard' ? 'primary' : 'info'"
+              :plain="femaleOpt !== 'standard'"
+              @click="femaleOpt = 'standard'">
+              标准
+            </up-tag>
+            <up-tag
+              :type="femaleOpt === 'avoid' ? 'primary' : 'info'"
+              :plain="femaleOpt !== 'avoid'"
+              @click="femaleOpt = 'avoid'">
+              避免女双碰到男双
+            </up-tag>
+          </view>
+        </view>
+        <view class="confirm-row">
+          <text class="confirm-subtitle">比赛局数</text>
+          <view class="confirm-options">
+            <up-tag :type="gameCount === 3 ? 'warning' : 'info'" :plain="gameCount !== 3" @click="gameCount = 3">
+              3局
+            </up-tag>
+            <up-tag :type="gameCount === 6 ? 'warning' : 'info'" :plain="gameCount !== 6" @click="gameCount = 6">
+              6局
+            </up-tag>
+            <up-tag :type="gameCount === 9 ? 'warning' : 'info'" :plain="gameCount !== 9" @click="gameCount = 9">
+              9局
+            </up-tag>
+          </view>
+        </view>
+      </view>
+    </up-modal>
   </view>
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from "vue";
+import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
+import { useMatchStore } from "@/store/modules/match";
+import { usePlayerStore } from "@/store/modules/player";
+import { useGameStore } from "@/store/modules/game";
+import Info from "@/pages/scheduleDetails/compnents/info.vue";
+import Score from "@/pages/scheduleDetails/compnents/score.vue";
+import Result from "@/pages/scheduleDetails/compnents/result.vue";
 
-type Preset = { title: string; time: string; place: string; participants: string[]; rules: string[] };
-const PRESETS: Record<string, Preset> = {
-  A1: {
-    title: "多人轮转赛｜11-20发布",
-    time: "2025-10-01 10:00",
-    place: "羽球馆A",
-    participants: ["发财", "空位", "空位", "空位"],
-    rules: ["每局 15 分", "轮转，每人至少一局"],
-  },
-  A2: {
-    title: "双打淘汰赛｜11-21发布",
-    time: "2025-10-02 10:00",
-    place: "羽球馆B",
-    participants: ["甲队", "乙队"],
-    rules: ["三局两胜", "不得迟到"],
-  },
-  M1: {
-    title: "俱乐部内部赛｜我发起",
-    time: "2025-10-05 19:00",
-    place: "俱乐部馆",
-    participants: ["管理员", "成员A"],
-    rules: ["内部赛仅限会员"],
-  },
-  J1: {
-    title: "线上报名赛｜我参与",
-    time: "2025-10-06 14:00",
-    place: "羽球馆C",
-    participants: ["本人", "队友"],
-    rules: ["须提前 1 天确认"],
-  },
-};
+const matchStore = useMatchStore();
+const playerStore = usePlayerStore();
+const gameStore = useGameStore();
 
+const matchId = ref<string>("");
 const title = ref("赛事详情");
-const basicInfo = reactive({ time: "", place: "" });
-const participants = ref<{ name: string }[]>([{ name: "发财" }]);
-const rules = ref<string[]>([]);
+const active = ref<"info" | "score" | "result">("info");
 
-onLoad((query) => {
+const participants = computed(() => playerStore.list.filter((p) => p.matchId === matchId.value));
+
+onLoad(async (query) => {
   const id = (query && (query as any).id) as string | undefined;
   if (!id) return;
-  const preset = PRESETS[id];
-  if (!preset) return;
-  title.value = preset.title;
-  basicInfo.time = preset.time;
-  basicInfo.place = preset.place;
-  participants.value = preset.participants.map((name) => ({ name }));
-  rules.value = [...preset.rules];
+  matchId.value = id;
+  const detail = await matchStore.fetchDetail(id);
+  title.value = detail?.name || "赛事详情";
+  await playerStore.fetchList();
+  await gameStore.fetchList();
 });
 
-const addParticipant = () => participants.value.push({ name: "空位" });
-const removeParticipant = (i: number) => participants.value.splice(i, 1);
-const addRule = () => rules.value.push("");
-const removeRule = (i: number) => rules.value.splice(i, 1);
+const invite = async () => {
+  uni.showToast({ title: "邀请已发送", icon: "success" });
+};
+
+// 确认弹窗与参数
+const confirmShow = ref(false);
+const femaleOpt = ref<"standard" | "avoid">("standard");
+const gameCount = ref<number>(3);
+const openConfirm = () => {
+  confirmShow.value = true;
+};
+const confirmGenerate = async () => {
+  confirmShow.value = false;
+  // 根据选择的参数生成对阵（此处先使用比赛局数作为批量创建数量的参考）
+  await gameStore.batchCreate(matchId.value, gameCount.value);
+  // 切换到本页面的“对局计分”Tab
+  active.value = "score";
+};
 </script>
 
 <style lang="scss" scoped>
@@ -117,19 +126,52 @@ const removeRule = (i: number) => rules.value.splice(i, 1);
   background-color: #f5f5f5;
 }
 
-.card {
-  padding: 24rpx;
-  margin-bottom: 20rpx;
+.page-title {
+  margin-bottom: 16rpx;
+  font-size: 36rpx;
+  font-weight: 700;
+}
+.tabs {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+.tab {
+  padding: 16rpx 24rpx;
+  color: #333;
   background: #ffffff;
   border: 2rpx solid #e0e0e0;
   border-radius: 16rpx;
 }
+.tab-active {
+  color: #ff6b35;
+  background: #fff7f3;
+  border-color: #ff6b35;
+}
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.card {
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  background: #ffffff;
+  border: 2rpx solid #ffe1d6;
+  border-radius: 16rpx;
+  box-shadow: 0 6rpx 16rpx rgba(255, 107, 53, 0.12);
+}
 
 .card-title {
+  padding-left: 12rpx;
   margin-bottom: 12rpx;
   font-size: 30rpx;
   font-weight: 500;
   color: #000000;
+  background: linear-gradient(90deg, #fff7f3 0%, #ffffff 100%);
+  border-left: 8rpx solid #ff6b35;
+  border-radius: 8rpx;
 }
 
 .row {
@@ -157,7 +199,7 @@ const removeRule = (i: number) => rules.value.splice(i, 1);
   justify-content: space-between;
   padding: 16rpx;
   margin-bottom: 12rpx;
-  background: #f7f7f7;
+  background: #fff7f3;
   border-radius: 12rpx;
 }
 
@@ -181,15 +223,21 @@ const removeRule = (i: number) => rules.value.splice(i, 1);
 .btn {
   padding: 16rpx 24rpx;
   background: #ffffff;
-  border: 2rpx solid #e0e0e0;
+  border: 2rpx solid #ffe1d6;
   border-radius: 12rpx;
 }
 
 .btn-mini {
   padding: 12rpx 20rpx;
   background: #ffffff;
-  border: 2rpx solid #e0e0e0;
+  border: 2rpx solid #ffe1d6;
   border-radius: 12rpx;
+}
+.btn-mini.alt {
+  border-color: #d6ecff;
+}
+.btn-mini.danger {
+  border-color: #ffd6d6;
 }
 
 .footer {
@@ -215,5 +263,32 @@ const removeRule = (i: number) => rules.value.splice(i, 1);
   color: #fff;
   background: #ff6b35;
   border-radius: 16rpx;
+}
+
+/* 确认弹窗样式 */
+.confirm-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.confirm-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+.confirm-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #000000;
+}
+.confirm-subtitle {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+}
+.confirm-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
 }
 </style>

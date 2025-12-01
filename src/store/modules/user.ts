@@ -24,6 +24,9 @@ export const useUserStore = defineStore("user", () => {
       token.value = `${res.access_token}`;
       uni.setStorageSync("token", token.value);
       userInfo.value = res.userInfo as UserInfo;
+      if (userInfo.value?.userId) {
+        uni.setStorageSync("userId", String(userInfo.value.userId));
+      }
     } catch (err) {
       console.error("login error:", err);
     }
@@ -46,6 +49,7 @@ export const useUserStore = defineStore("user", () => {
       userInfo.value = null;
       token.value = ""; // 清空 token
       uni.removeStorageSync("token"); // 从本地缓存移除 token
+      uni.removeStorageSync("userId");
     }
   };
 
