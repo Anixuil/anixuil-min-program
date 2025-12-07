@@ -25,8 +25,13 @@ export const useMatchStore = defineStore("match", () => {
     planStartTime: string;
     planEndTime: string;
     status: string;
+    type: string;
   }) => {
     return BadmintonAPI.createMatch(payload);
+  };
+
+  const update = async (params: any) => {
+    return BadmintonAPI.updateMatch(params);
   };
 
   const updateStatus = async (id: string, status: string) => {
@@ -37,5 +42,5 @@ export const useMatchStore = defineStore("match", () => {
     return BadmintonAPI.deleteMatch(id);
   };
 
-  return { list, total, page, pageSize, current, fetchList, fetchDetail, createMatch, updateStatus, removeMatch };
+  return { list, total, page, pageSize, current, fetchList, fetchDetail, createMatch, updateStatus, update, removeMatch };
 });

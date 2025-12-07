@@ -15,6 +15,10 @@ export const useGameStore = defineStore("game", () => {
     return BadmintonAPI.batchCreateMatchGame({ matchId, matchGameNum });
   };
 
+  const createByMode = async (matchId: string) => {
+    return BadmintonAPI.createMatchGameByMode({ matchId });
+  };
+
   const batchBind = async (
     items: Array<{ matchGameId: string; playerId: string; partnerId?: string; odds?: number }>,
   ) => {
@@ -29,5 +33,9 @@ export const useGameStore = defineStore("game", () => {
     return BadmintonAPI.bindMatchGamePlayer(data);
   };
 
-  return { list, page, pageSize, fetchList, batchCreate, batchBind, unbind, bind };
+  const registerScore = async (data: { matchGameId: string; matchGamePlayerId: string; score: number }) => {
+    return BadmintonAPI.registrationScore(data);
+  };
+
+  return { list, page, pageSize, fetchList, batchCreate, createByMode, batchBind, unbind, bind, registerScore };
 });

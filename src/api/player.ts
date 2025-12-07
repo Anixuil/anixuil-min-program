@@ -20,6 +20,9 @@ const PlayerAPI = {
   unclaimPlayer(data: { matchId: string; playerId: string }): Promise<boolean> {
     return request<boolean>({ url: "/badminton/unclaimPlayer", method: "PUT", data });
   },
+  deletePlayer(id: string): Promise<boolean> {
+    return request<boolean>({ url: `/badminton/deletePlayer/${id}`, method: "DELETE" });
+  },
 };
 
 export default PlayerAPI;

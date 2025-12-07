@@ -1,4 +1,5 @@
 import request from "@/utils/request";
+import { buildQuery } from "@/utils/query";
 
 export interface DictTypeItem {
   id: string;
@@ -24,8 +25,8 @@ export interface PageResult<T> {
 
 const DictAPI = {
   listSysDictType(params: { page: number; pageSize: number }): Promise<PageResult<DictTypeItem>> {
-    const query = new URLSearchParams({ page: String(params.page), pageSize: String(params.pageSize) });
-    return request<PageResult<DictTypeItem>>({ url: `/sys-dict/listSysDictType?${query.toString()}`, method: "GET" });
+    const query = buildQuery({ page: params.page, pageSize: params.pageSize });
+    return request<PageResult<DictTypeItem>>({ url: `/sys-dict/listSysDictType${query}`, method: "GET" });
   },
   createSysDictType(data: { dictTypeName: string; dictTypeCode: string }): Promise<boolean> {
     return request<boolean>({ url: "/sys-dict/createSysDictType", method: "POST", data });
@@ -47,12 +48,8 @@ const DictAPI = {
     return request<boolean>({ url: "/sys-dict/createSysDict", method: "POST", data });
   },
   listSysDict(params: { page: number; pageSize: number; dictTypeCode: string }): Promise<PageResult<DictItem>> {
-    const query = new URLSearchParams({
-      page: String(params.page),
-      pageSize: String(params.pageSize),
-      dictTypeCode: params.dictTypeCode,
-    });
-    return request<PageResult<DictItem>>({ url: `/sys-dict/listSysDict?${query.toString()}`, method: "GET" });
+    const query = buildQuery({ page: params.page, pageSize: params.pageSize, dictTypeCode: params.dictTypeCode });
+    return request<PageResult<DictItem>>({ url: `/sys-dict/listSysDict${query}`, method: "GET" });
   },
   updateSysDict(data: { id: string; label?: string; value?: string; remark?: string }): Promise<boolean> {
     return request<boolean>({ url: "/sys-dict/updateSysDict", method: "PUT", data });

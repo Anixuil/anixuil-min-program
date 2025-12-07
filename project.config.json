@@ -5,6 +5,8 @@
     "minified": true,
     "uglifyFileName": false,
     "enhance": true,
+    "ignoreDevUnusedFiles": false,
+    "ignoreUploadUnusedFiles": false,
     "packNpmRelationList": [],
     "babelSetting": {
       "ignore": [],

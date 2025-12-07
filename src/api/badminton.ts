@@ -1,4 +1,5 @@
 import request from "@/utils/request";
+import { buildQuery } from "@/utils/query";
 
 export interface MatchCreatePayload {
   name: string;
@@ -6,6 +7,7 @@ export interface MatchCreatePayload {
   planStartTime: string;
   planEndTime: string;
   status: string;
+  type: string;
 }
 
 export interface MatchListQuery {
@@ -22,6 +24,11 @@ export interface MatchItem {
   planEndTime?: string;
   status?: string;
   createBy?: string;
+  user?: {
+    userAvatar?: string;
+    wxAvatarUrl?: string;
+    userAlias?: string;
+  };
 }
 
 export interface PageResult<T> {
@@ -35,6 +42,19 @@ export interface MatchGameItem {
   id: string;
   matchId: string;
   totalOdds?: number;
+  status?: string;
+  matchGamePlayers?: MatchGamePlayerItem[];
+}
+
+export interface MatchGamePlayerItem {
+  id: string;
+  matchGameId: string;
+  playerId: string;
+  partnerId?: string;
+  odds?: number;
+  score?: number;
+  player?: { id: string; name: string };
+  partner?: { id: string; name: string } | null;
 }
 
 export interface BindGamePlayerItem {
@@ -49,17 +69,13 @@ const BadmintonAPI = {
     return request<boolean>({ url: "/badminton/createMatch", method: "POST", data });
   },
   listMatch(params: MatchListQuery): Promise<PageResult<MatchItem>> {
-    const query = new URLSearchParams({
-      page: String(params.page),
-      pageSize: String(params.pageSize),
-      ...(params.name ? { name: params.name } : {}),
-    });
-    return request<PageResult<MatchItem>>({ url: `/badminton/listMatch?${query.toString()}`, method: "GET" });
+    const query = buildQuery({ page: params.page, pageSize: params.pageSize, name: params.name });
+    return request<PageResult<MatchItem>>({ url: `/badminton/listMatch${query}`, method: "GET" });
   },
   getMatch(id: string): Promise<MatchItem> {
     return request<MatchItem>({ url: `/badminton/match/${id}`, method: "GET" });
   },
-  updateMatch(data: { id: string; status?: string; name?: string }): Promise<boolean> {
+  updateMatch(data: { id: string; status?: string; name?: string; description?: string; planStartTime?: string; mode?: string; type?: string }): Promise<boolean> {
     return request<boolean>({ url: "/badminton/updateMatch", method: "PUT", data });
   },
   deleteMatch(id: string): Promise<boolean> {
@@ -70,8 +86,11 @@ const BadmintonAPI = {
     return request<MatchGameItem[]>({ url: "/badminton/batchCreateMatchGame", method: "POST", data });
   },
   listMatchGame(params: { page: number; pageSize: number }): Promise<PageResult<MatchGameItem>> {
-    const query = new URLSearchParams({ page: String(params.page), pageSize: String(params.pageSize) });
-    return request<PageResult<MatchGameItem>>({ url: `/badminton/listMatchGame?${query.toString()}`, method: "GET" });
+    const query = buildQuery({ page: params.page, pageSize: params.pageSize });
+    return request<PageResult<MatchGameItem>>({ url: `/badminton/listMatchGame${query}`, method: "GET" });
+  },
+  createMatchGameByMode(data: { matchId: string }): Promise<boolean> {
+    return request<boolean>({ url: "/badminton/createMatchGameByMode", method: "POST", data });
   },
   batchMatchGameBindPlayer(data: BindGamePlayerItem[]): Promise<boolean> {
     return request<boolean>({ url: "/badminton/batchMatchGameBindPlayer", method: "POST", data });
@@ -91,6 +110,12 @@ const BadmintonAPI = {
     partnerId?: string;
   }): Promise<boolean> {
     return request<boolean>({ url: "/badminton/bindMatchGamePlayer", method: "PUT", data });
+  },
+  registrationScore(data: { matchGameId: string; matchGamePlayerId: string; score: number }): Promise<number> {
+    return request<number>({ url: "/badminton/registrationScore", method: "POST", data });
+  },
+  historyPlayer(): Promise<any[]> {
+    return request<any[]>({ url: "/badminton/historyPlayer", method: "GET" });
   },
 };
 

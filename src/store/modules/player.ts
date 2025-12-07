@@ -20,5 +20,9 @@ export const usePlayerStore = defineStore("player", () => {
     return PlayerAPI.unclaimPlayer(data);
   };
 
-  return { list, fetchList, batchCreate, claim, unclaim };
+  const remove = async (id: string) => {
+    return PlayerAPI.deletePlayer(id);
+  };
+
+  return { list, fetchList, batchCreate, claim, unclaim, remove };
 });

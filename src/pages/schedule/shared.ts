@@ -7,7 +7,7 @@ export type ScheduleItem = {
 };
 
 export function navigateToDetails(id: string) {
-  uni.navigateTo({ url: `/pages/scheduleDetails/index?id=${id}` });
+  uni.navigateTo({ url: `/pages/matchDetails/index?id=${id}` });
 }
 
 export function formatSub(item: ScheduleItem): string {

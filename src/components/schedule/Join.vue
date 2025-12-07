@@ -1,6 +1,5 @@
 <template>
   <view class="list-wrapper">
-    <view class="header-entry">我参与的赛程</view>
     <view v-for="item in list" :key="item.id" class="card" @click="goDetails(item)">
       <view class="card-title">{{ item.title }}</view>
       <view class="card-sub">{{ formatSub(item) }}</view>
@@ -10,6 +9,7 @@
 </template>
 
 <script lang="ts" setup>
+import { onMounted, computed } from "vue";
 import { navigateToDetails } from "@/pages/schedule/shared";
 import { usePlayerStore } from "@/store/modules/player";
 import { useMatchStore } from "@/store/modules/match";
@@ -21,7 +21,7 @@ const playerStore = usePlayerStore();
 const matchStore = useMatchStore();
 const dictStore = useDictStore();
 
-onLoad(async () => {
+onMounted(async () => {
   await dictStore.loadMatchStatus();
   await playerStore.fetchList();
   await matchStore.fetchList();
@@ -46,45 +46,20 @@ const goDetails = (item: any) => navigateToDetails(item.id);
 </script>
 
 <style lang="scss" scoped>
-.list-wrapper {
-  padding: 16rpx;
-}
-
-.header-entry {
-  width: 100%;
-  height: 80rpx;
-  line-height: 80rpx;
-  color: #000000;
-  text-align: center;
-  background: #ffffff;
-  border: 2rpx solid #e0e0e0;
-  border-radius: 16rpx;
-}
-
+.list-wrapper { padding: 0; }
 .card {
-  padding: 24rpx;
-  margin-top: 20rpx;
-  background: #fff;
-  border: 2rpx solid #e0e0e0;
-  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-top: 24rpx;
+  background: #ffffff;
+  border-radius: 32rpx;
+  box-shadow: 0 10rpx 40rpx rgba(0,0,0,0.04);
+  transition: all 0.3s;
+  
+  &:active {
+    transform: scale(0.98);
+  }
 }
-
-.card-title {
-  margin-bottom: 8rpx;
-  font-size: 30rpx;
-  font-weight: 500;
-  color: #000;
-}
-
-.card-sub {
-  font-size: 24rpx;
-  color: #666;
-}
-
-.end-text {
-  margin-top: 16rpx;
-  font-size: 24rpx;
-  color: #999;
-  text-align: center;
-}
+.card-title { font-size: 32rpx; font-weight: bold; color: #1a1a1a; margin-bottom: 16rpx; }
+.card-sub { font-size: 26rpx; color: #909399; line-height: 1.5; }
+.end-text { margin-top: 32rpx; font-size: 24rpx; color: #c0c4cc; text-align: center; }
 </style>

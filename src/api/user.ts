@@ -2,7 +2,7 @@
  * @Author: Anixuil
  * @Date: 2025-09-26 16:52:01
  * @LastEditors: Anixuil
- * @LastEditTime: 2025-10-19 22:46:27
+ * @LastEditTime: 2025-12-07 11:06:37
  * @Description: 用户接口
  */
 import request from "@/utils/request";
@@ -51,9 +51,9 @@ const UserAPI = {
 
   // 更改用户信息
   updateUserInfo(data: {
-    userId: number;
-    userEmail?: string;
-    userName?: string;
+    userId: string;
+    userName: string;
+    userEmail: string;
     userAge?: string;
     userAlias?: string;
   }): Promise<any> {
@@ -83,16 +83,27 @@ const UserAPI = {
 };
 export default UserAPI;
 
+/** 羽毛球信息 */
+export interface UserBadmintonInfo {
+  score: number;
+  experience: number;
+  matchCount?: number; // 参加过比赛数
+  gameCount?: number; // 对局总数
+  winCount?: number; // 胜局数
+  loseCount?: number; // 败局数
+  winRate?: number; // 胜率
+}
+
 /** 登录用户信息 */
 export interface UserInfo {
   /** 用户ID */
-  userId: number;
+  userId: string;
 
   /** 用户名 */
-  userName?: string;
+  userName: string;
 
   /** 邮箱 */
-  userEmail?: string;
+  userEmail: string;
 
   /** 昵称 */
   nickName?: string;
@@ -107,6 +118,12 @@ export interface UserInfo {
   userAge?: string; // 用户年龄
 
   userPassword?: string; // 用户密码
+
+  /** 羽球信息 */
+  badmintonInfo?: UserBadmintonInfo;
+
+  /** 是否已签到 */
+  isSign?: boolean;
 }
 
 /** 微信登录数据 */
