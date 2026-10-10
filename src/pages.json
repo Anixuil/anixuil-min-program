@@ -1,110 +1,36 @@
 {
-  "easycom": {
-    "autoscan": true,
-    "custom": {
-      "^my-(.*)": "@/components/$1.vue",
-      "^wd-(.*)": "wot-design-uni/components/wd-$1/wd-$1.vue",
-      "^up-(.*)": "uview-plus/components/u-$1/u-$1.vue",
-      "^u-(.*)": "uview-plus/components/u-$1/u-$1.vue",
-      "^(.*)": "@/components/$1.vue"
-    }
-  },
+  "easycom": { "autoscan": true, "custom": { "^up-(.*)": "uview-plus/components/u-$1/u-$1.vue" } },
   "pages": [
-    {
-      "path": "pages/index/index",
-      "style": {
-        "navigationBarTitleText": "羽球对决",
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/schedule/index",
-      "style": {
-        "navigationBarTitleText": "赛程-羽球对决",
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/scheduleDetails/index",
-      "style": {
-        "navigationBarTitleText": "报名信息",
-        "navigationBarBackgroundColor": "#ffffff",
-        "navigationBarTextStyle": "black",
-        "enablePullDownRefresh": false,
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/profile/index",
-      "style": {
-        "navigationBarTitleText": "我的-羽球对决",
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/login/index",
-      "style": {
-        "navigationBarTitleText": "登录-羽球对决",
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/register/index",
-      "style": {
-        "navigationBarTitleText": "注册-羽球对决",
-        "navigationBarBackgroundColor": "#ffffff",
-        "navigationBarTextStyle": "black",
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/profile/complete-info",
-      "style": {
-        "navigationBarTitleText": "补充信息-羽球对决",
-        "navigationStyle": "custom"
-      }
-    },
-    {
-      "path": "pages/matchDetails/index",
-      "style": {
-        "navigationBarTitleText": "对局详情-羽球对决",
-        "navigationBarBackgroundColor": "#ffffff",
-        "navigationBarTextStyle": "black",
-        "navigationStyle": "custom"
-      }
-    }
+    { "path": "pages/index/index", "style": {
+      // #ifdef MP-WEIXIN
+      "navigationStyle": "custom",
+      // #endif
+      "navigationBarTitleText": "羽你同场", "enablePullDownRefresh": true
+    } },
+    { "path": "pages/schedule/index", "style": {
+      // #ifdef MP-WEIXIN
+      "navigationStyle": "custom",
+      // #endif
+      "navigationBarTitleText": "我的球局", "enablePullDownRefresh": true
+    } },
+    { "path": "pages/profile/index", "style": { "navigationBarTitleText": "我的羽球" } },
+    { "path": "pages/points/index", "style": { "navigationBarTitleText": "积分中心", "enablePullDownRefresh": true } },
+    { "path": "pages/create/index", "style": { "navigationBarTitleText": "发起球局" } },
+    { "path": "pages/matchDetails/index", "style": { "navigationBarTitleText": "球局详情", "enablePullDownRefresh": true } },
+    { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } },
+    { "path": "pages/register/index", "style": { "navigationBarTitleText": "注册" } },
+    { "path": "pages/scheduleDetails/index", "style": { "navigationBarTitleText": "球局详情" } },
+    { "path": "pages/profile/complete-info", "style": { "navigationBarTitleText": "个人资料" } }
   ],
   "globalStyle": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "羽球对决",
-    "navigationBarBackgroundColor": "#ffffff",
-    "backgroundColor": "#ffffff",
-    "navigationStyle": "custom"
+    "navigationBarTextStyle": "black", "navigationBarBackgroundColor": "#f4f5f2", "backgroundColor": "#f4f5f2"
   },
   "tabBar": {
-    "color": "#999999",
-    "selectedColor": "#FF6B35",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "black",
+    "color": "#65716a", "selectedColor": "#e96b35", "backgroundColor": "#ffffff", "borderStyle": "white",
     "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "static/tabbar/home.png",
-        "selectedIconPath": "static/tabbar/home-active.png"
-      },
-      {
-        "pagePath": "pages/schedule/index",
-        "text": "赛程",
-        "iconPath": "static/tabbar/history.png",
-        "selectedIconPath": "static/tabbar/history-active.png"
-      },
-      {
-        "pagePath": "pages/profile/index",
-        "text": "我的",
-        "iconPath": "static/tabbar/profile.png",
-        "selectedIconPath": "static/tabbar/profile-active.png"
-      }
+      { "pagePath": "pages/index/index", "text": "首页", "iconPath": "static/tabbar/home.png", "selectedIconPath": "static/tabbar/home-active.png" },
+      { "pagePath": "pages/schedule/index", "text": "球局", "iconPath": "static/tabbar/history.png", "selectedIconPath": "static/tabbar/history-active.png" },
+      { "pagePath": "pages/profile/index", "text": "我的", "iconPath": "static/tabbar/profile.png", "selectedIconPath": "static/tabbar/profile-active.png" }
     ]
   }
 }

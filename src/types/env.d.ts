@@ -1,5 +1,6 @@
 // src/types/env.d.ts
 interface ImportMetaEnv {
+  VITE_BADMINTON_ORIGIN?: string;
   /**
    * 应用端口
    */

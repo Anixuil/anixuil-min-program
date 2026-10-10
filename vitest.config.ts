@@ -1,21 +1,6 @@
-import { defineConfig } from 'vitest/config'
-
+import { defineConfig } from "vitest/config";
+import { fileURLToPath, URL } from "node:url";
 export default defineConfig({
-  plugins: [],
-  test: {
-    environment: 'node',
-    globals: true,
-    coverage: {
-      reporter: ['text','html'],
-      lines: 0,
-      statements: 0,
-      functions: 0,
-      branches: 0
-    }
-  },
-  resolve: {
-    alias: {
-      '@': '/src'
-    }
-  }
-})
+  test: { environment: "node", globals: true, coverage: { provider: "v8", reporter: ["text", "html"] } },
+  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+});

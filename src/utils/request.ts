@@ -1,56 +1,43 @@
-/*
- * @Author: Anixuil
- * @Date: 2025-09-26 16:52:01
- * @LastEditors: Anixuil
- * @LastEditTime: 2025-10-19 20:38:10
- * @Description: 请求封装
- */
-// src/utils/request.ts
+import { rememberReturn } from "@/utils/navigation";
+let redirecting = false;
 export default function request<T>(options: UniApp.RequestOptions): Promise<T> {
-  const token = uni.getStorageSync("token"); // 从本地缓存获取 token
+  const token = uni.getStorageSync("token");
+  let origin = String(import.meta.env.VITE_BADMINTON_ORIGIN || "http://127.0.0.1:3000").replace(/\/$/, "");
+  // #ifdef H5
+  origin = "";
+  // #endif
   return new Promise((resolve, reject) => {
     uni.request({
-      ...options,
-      // VITE_APP_API_URL 是在 Vite 项目的 .env.development 文件中配置的环境变量，使用代理标识，实际转发到真实 API
-      url: `${import.meta.env.VITE_APP_API_URL}${import.meta.env.VITE_APP_BASE_API}${options.url}`, // 示例: http://localhost:5173/dev-api/login
-      header: {
-        ...options.header,
-        Authorization: `Bearer ${token}`,
-      },
-      success: (response) => {
-        const resData = response.data as ResponseData<T>;
-        const status = (response as any).statusCode;
-        const codeNum =
-          typeof (resData as any).code === "string" ? parseInt((resData as any).code, 10) : (resData as any).code;
-        if (status === 401 || codeNum === 401) {
+      ...options, timeout: 15000,
+      url: `${origin}/ani-server${options.url}`,
+      header: { ...options.header, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      success: response => {
+        const data = response.data as { code?: number; message?: string; data?: T };
+        const code = Number(data?.code || response.statusCode);
+        if (code === 401 && token === uni.getStorageSync("token") && !options.url.startsWith("/auth/")) {
           uni.removeStorageSync("token");
           uni.removeStorageSync("userId");
-          uni.showToast({ title: "登录状态已过期，请先登录", icon: "none", duration: 1500 });
-          setTimeout(() => {
-            uni.reLaunch({ url: "/pages/login/index" });
-          }, 1200);
-          reject({ message: "Unauthorized", code: 401 });
-          return;
+          uni.$emit("bm:unauthorized");
+          if (!redirecting) {
+            redirecting = true;
+            rememberReturn();
+            uni.reLaunch({ url: "/pages/login/index", complete: () => { redirecting = false; } });
+          }
         }
-        const codeVal = (resData as any).code;
-        const isOk = codeVal === 200 || codeVal === "200";
-        if (isOk) {
-          resolve(resData.data as T);
-        } else {
-          uni.showToast({ title: resData.message || "业务处理失败", icon: "none", duration: 2000 });
-          reject({ message: resData.message || "业务处理失败", code: resData.code });
-        }
+        if (response.statusCode >= 200 && response.statusCode < 300 && Number(data?.code) === 200) resolve(data.data as T);
+        else reject({ code, message: data?.message || "请求失败，请稍后重试" });
       },
-      fail: (error) => {
-        uni.showToast({
-          title: "网络请求失败",
-          icon: "none",
-          duration: 2000,
-        });
-        reject({
-          message: "网络请求失败",
-          error,
-        });
+      fail: error => {
+        const errMsg = error.errMsg || "";
+        let message = "网络连接失败，请检查网络后重试";
+        if (/timeout/i.test(errMsg)) message = "请求超时，服务未及时响应，请稍后重试";
+        else if (/url not in domain list|domain list|不在.*合法域名/i.test(errMsg)) message = "请求域名未获允许，请联系管理员检查小程序配置";
+        else if (/abort|cancel/i.test(errMsg)) message = "请求已取消，请重试";
+        if (import.meta.env.DEV) {
+          // Do not log headers or payloads: they can contain tokens, passwords and login codes.
+          console.warn("[api] 请求失败", { url: `${origin}/ani-server${options.url}`, errMsg });
+        }
+        reject({ code: 0, message, errMsg });
       },
     });
   });

@@ -17,6 +17,7 @@
     "minifyWXML": true
   },
   "compileType": "miniprogram",
+  "projectname": "羽你同场",
   "simulatorPluginLibVersion": {},
   "packOptions": {
     "ignore": [],

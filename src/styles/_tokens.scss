@@ -1,0 +1,42 @@
+// Shared by pages and isolated mini-program components.
+$bm-page: #f4f5f2;
+$bm-surface: #ffffff;
+$bm-ink: #17231f;
+$bm-muted: #65716a;
+$bm-line: #dce2dc;
+$bm-soft: #edf0ed;
+$bm-primary: #e96b35;
+$bm-primary-soft: #fff3eb;
+$bm-error: #b84032;
+$bm-success: #346747;
+$bm-success-soft: #e9f3ec;
+$bm-warning: #96501f;
+$bm-inverse: #ffffff;
+$bm-inverse-muted: #c1cdc5;
+$bm-radius-panel: 24rpx;
+$bm-disabled: #8c958e;
+$bm-radius: 16rpx;
+$bm-control-height: 96rpx;
+$bm-ease: cubic-bezier(.2, .8, .2, 1);
+$bm-motion-press: 120ms;
+$bm-motion-exit: 160ms;
+$bm-motion-content: 220ms;
+$bm-motion-sheet: 300ms;
+
+@mixin bm-control {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 2rpx solid $bm-line;
+  border-radius: $bm-radius;
+  background: $bm-surface;
+  color: $bm-ink;
+  font-size: 28rpx;
+  transition: border-color $bm-motion-press ease, background-color $bm-motion-press ease;
+}
+
+@mixin bm-disabled-control {
+  background: $bm-soft;
+  border-color: $bm-line;
+  color: $bm-disabled;
+}

@@ -1,122 +1,37 @@
-/*
- * @Author: Anixuil
- * @Date: 2025-09-26 16:52:01
- * @LastEditors: Anixuil
- * @LastEditTime: 2025-10-19 22:46:11
- * @Description: 用户模块
- */
-//  src/store/module/user.ts
 import { defineStore } from "pinia";
-import AuthAPI from "@/api/auth";
-import UserAPI, { UserInfo } from "@/api/user";
+import { ref } from "vue";
+import { api, clearPendingWrites } from "@/api/competition";
+import type { Account } from "@/types/competition";
 
 export const useUserStore = defineStore("user", () => {
-  // 确保 token 是响应式的
   const token = ref<string>(uni.getStorageSync("token") || "");
-  const userInfo = ref<UserInfo | null>(null);
-
-  const weChatCode = ref<string | number>(""); // 微信登录code
-
-  // 登录
-  const login = async (data: { userEmail: string; userPassword: string }) => {
-    try {
-      const res = await AuthAPI.login(data);
-      token.value = `${res.access_token}`;
-      uni.setStorageSync("token", token.value);
-      userInfo.value = res.userInfo as UserInfo;
-      if (userInfo.value?.userId) {
-        uni.setStorageSync("userId", String(userInfo.value.userId));
-      }
-    } catch (err) {
-      console.error("login error:", err);
+  const userInfo = ref<Account | null>(null);
+  let restoring: Promise<Account | null> | null = null;
+  function clear() {
+    token.value = ""; userInfo.value = null; restoring = null;
+    uni.removeStorageSync("token"); uni.removeStorageSync("userId");
+    clearPendingWrites();
+  }
+  function accept(result: { access_token: string; user: Account }) {
+    if (!result.access_token || !result.user?.id) throw new Error("登录返回数据不完整");
+    clearPendingWrites(); restoring = null; token.value = result.access_token; userInfo.value = result.user;
+    uni.setStorageSync("token", token.value); uni.setStorageSync("userId", result.user.id);
+  }
+  async function login(input: { email: string; password: string }) { accept(await api.login(input)); }
+  async function register(input: { email: string; password: string; nickname: string }) { accept(await api.register(input)); }
+  async function wechat() {
+    const code = await new Promise<string>((resolve, reject) => uni.login({ provider: "weixin", success: r => r.code ? resolve(r.code) : reject(new Error("未获得微信登录凭证")), fail: () => reject(new Error("微信登录已取消或不可用")) }));
+    accept(await api.wechat(code));
+  }
+  function restore(): Promise<Account | null> {
+    if (!token.value) return Promise.resolve(null);
+    if (!restoring) {
+      const session = token.value;
+      restoring = api.me().then(user => { if (token.value === session) userInfo.value = user; return token.value === session ? user : null; }).finally(() => { if (token.value === session) restoring = null; });
     }
-  };
-
-  // 获取用户信息
-  const getUserInfo = async () => {
-    const info = await UserAPI.getUserInfo();
-    userInfo.value = info;
-    return info;
-  };
-
-  // 登出
-  const logout = async () => {
-    try {
-      await AuthAPI.logout();
-    } catch (err) {
-      console.error("logout error:", err);
-    } finally {
-      userInfo.value = null;
-      token.value = ""; // 清空 token
-      uni.removeStorageSync("token"); // 从本地缓存移除 token
-      uni.removeStorageSync("userId");
-    }
-  };
-
-  // 微信一键登录
-  const WeChatLogin = async () => {
-    return new Promise((resolve, reject) => {
-      let code = "";
-      uni.login({
-        provider: "weixin",
-        success: (res) => {
-          code = res.code;
-          weChatCode.value = code;
-          uni.setStorageSync("weChatCode", weChatCode.value);
-          resolve(weChatCode.value);
-        },
-        fail: (err) => {
-          // console.log('微信登录失败', err);
-          reject(err);
-        },
-        complete: () => {
-          // console.log('微信登录完成');
-        },
-      });
-    });
-  };
-
-  // 微信获取用户信息
-  const WeChatGetUserInfo = async () => {
-    return new Promise((resolve, reject) => {
-      uni.getUserInfo({
-        provider: "weixin",
-        success: (res) => {
-          UserAPI.WeChatLogin({
-            code: weChatCode.value,
-            avatarUrl: res.userInfo.avatarUrl,
-            nickName: res.userInfo.nickName,
-          })
-            .then((loginRes) => {
-              const accessToken = loginRes?.access_token || "";
-              if (!accessToken) {
-                reject(new Error("登录接口调用失败，access_token为空"));
-                return;
-              }
-              uni.setStorageSync("token", accessToken);
-              userInfo.value = loginRes.userInfo;
-              token.value = accessToken;
-              resolve(loginRes);
-            })
-            .catch((err) => {
-              console.log("登录接口调用失败", err);
-              reject(err);
-            });
-        },
-        fail: (err) => {
-          console.log("微信获取用户信息失败", err);
-        },
-      });
-    });
-  };
-
-  return {
-    token,
-    userInfo,
-    login,
-    logout,
-    getUserInfo,
-    WeChatLogin,
-    WeChatGetUserInfo,
-  };
+    return restoring;
+  }
+  async function logout() { try { await api.logout(); } catch (error: any) { if (error.code !== 401) throw error; } clear(); }
+  uni.$on("bm:unauthorized", clear);
+  return { token, userInfo, login, register, wechat, restore, logout, clear };
 });

@@ -1,6 +1,8 @@
-# UniApp Vue3 Template
+# 羽你同场
 
-一个基于 Vue 3 + TypeScript + Vite + UnoCSS 的 uni-app 项目模板，集成了多种实用工具和最佳实践，适用于快速开发跨平台应用。
+一个基于 Vue 3 + TypeScript + Vite + UnoCSS 的羽毛球小程序，支持球友组局、排赛、计分和战绩记录。约好球友，一起上场。
+
+开发、数据库升级与部署说明见 [BADMINTON_LOCAL.md](./BADMINTON_LOCAL.md)。
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Vue](https://img.shields.io/badge/Vue-3.x-brightgreen.svg) ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg) ![Vite](https://img.shields.io/badge/Vite-4.x-646cff.svg) ![uni-app](https://img.shields.io/badge/uni--app-3.x-green.svg) ![UnoCSS](https://img.shields.io/badge/UnoCSS-latest-8D66FE.svg) ![Pinia](https://img.shields.io/badge/Pinia-latest-yellow.svg) ![ESLint](https://img.shields.io/badge/ESLint-9.x-4B32C3.svg) ![Prettier](https://img.shields.io/badge/Prettier-3.x-F7B93E.svg) ![Sass](https://img.shields.io/badge/Sass-latest-CC6699.svg)
 

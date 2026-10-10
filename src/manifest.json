@@ -1,7 +1,7 @@
 {
-  "name": "Ani工具箱",
+  "name": "羽你同场",
   "appid": "",
-  "description": "",
+  "description": "约好球友，一起上场。支持羽毛球组局、排赛、计分和战绩记录。",
   "versionName": "1.0.0",
   "versionCode": "100",
   "transformPx": false,
@@ -51,6 +51,7 @@
   /* 小程序特有相关 */
   "mp-weixin": {
     "appid": "wx0833749cbe1b4f5e",
+    "renderer": "webview",
     "setting": {
       "urlCheck": false,
       "minified": true
