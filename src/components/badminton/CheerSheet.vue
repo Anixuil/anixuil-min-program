@@ -26,7 +26,7 @@
         <text class="bm-label">数量</text>
         <view class="cheer-quantity">
           <button class="cheer-step" aria-label="减少道具数量" :disabled="decreaseDisabled" :hover-class="decreaseDisabled ? 'none' : 'cheer-step-pressed'" :hover-stay-time="80" @click="stepQuantity(-1)">−</button>
-          <view class="cheer-quantity-input"><BmField v-model="quantity" label="道具数量" type="number" maxlength="2" :disabled="quantityLocked" :adjust-position="false" /></view>
+          <view class="cheer-quantity-input"><BmField v-model="quantity" label="道具数量" type="number" maxlength="2" :disabled="quantityLocked" /></view>
           <button class="cheer-step" aria-label="增加道具数量" :disabled="increaseDisabled" :hover-class="increaseDisabled ? 'none' : 'cheer-step-pressed'" :hover-stay-time="80" @click="stepQuantity(1)">＋</button>
         </view>
         <view class="bm-muted">本次消耗 {{ cost }} 分 · 本局还可投入 {{ remaining }} 分</view>

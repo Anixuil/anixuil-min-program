@@ -56,11 +56,14 @@
     </view>
     </scroll-view>
     <view v-if="detail" class="bm-dock" :style="dockStyle" :aria-hidden="backgroundBlocked" :inert="backgroundBlocked ? true : undefined"><view class="bm-dock-inner" :style="sectionStyle(4, 'fade')"><button v-if="owner" class="bm-icon-button bm-more-button" :disabled="locked || backgroundBlocked" aria-label="更多操作" @click="openPanel('more')" :hover-class="locked || backgroundBlocked ? 'none' : 'bm-touch'" :hover-stay-time="80"><view class="bm-more-icon" aria-hidden="true"><view class="bm-more-dot" /><view class="bm-more-dot" /><view class="bm-more-dot" /></view></button><view class="bm-dock-main"><BmButton :loading="busy && !claimingPlayerId && !releaseOperation" :disabled="locked || backgroundBlocked" @click="primaryAction">{{ primaryLabel }}</BmButton></view></view></view>
-    <BmSheet :model-value="panelOpen" :title="panelTitle" :content-key="displayedPanel" :busy="busy" :covered="!!confirmation" @close="closePanel" @closed="panelClosed">
+    <BmSheet :model-value="panelOpen" :title="panelTitle" :content-key="displayedPanel" :resize-key="panelResizeKey" :busy="busy" :covered="!!confirmation" @close="closePanel" @closed="panelClosed">
       <view :style="panelContainerStyle"><view id="detail-panel-content" :style="panelStyle" :aria-hidden="!panelInteractive || !panelOpen">
       <template v-if="displayedPanel === 'more'"><button v-if="detail?.match.status === 'draft'" class="bm-option" :disabled="panelLocked" @click="openPanel('edit')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">修改球局配置 →</button><button v-if="canInvite" class="bm-option" :disabled="panelLocked" @click="openPanel('invite')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">邀请球友 →</button><button v-if="detail?.match.status === 'scheduled'" class="bm-option" :disabled="panelLocked" @click="transition('clear')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">清除排赛，重新安排</button><button v-if="canInvite" class="bm-option" :disabled="panelLocked" @click="openReason('match')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">取消球局</button><button v-if="detail && ['draft', 'scheduled'].includes(detail.match.status)" class="bm-option" :disabled="panelLocked" @click="transition('delete')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">删除球局</button></template>
       <template v-if="displayedPanel === 'player'"><view class="bm-heading">{{ selectedPlayer?.name }}</view><view class="bm-muted">编号 {{ (selectedPlayer?.position ?? 0) + 1 }}</view><button v-if="selectedPlayer?.userId" class="bm-option" :disabled="panelLocked" @click="claim(selectedPlayer.id, true)" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">解除账号认领</button><button v-if="detail?.match.status === 'draft' && selectedPlayer" class="bm-option" :disabled="panelLocked" @click="removePlayer(selectedPlayer.id)" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">移出名单</button></template>
-      <template v-if="displayedPanel === 'invite'"><view class="bm-muted">分享给球友，登录后认领名单。重置会使旧邀请失效。</view><BmButton :loading="busy" :disabled="panelLocked" @click="invite">{{ inviteToken ? '重置邀请' : '生成邀请' }}</BmButton><view v-if="inviteRendered" class="bm-divider" :style="inviteStyle" :aria-hidden="!inviteToken">
+      <template v-if="displayedPanel === 'invite'"><view class="bm-muted">分享给球友，登录后即可认领名单。</view>
+        <BmButton v-if="!inviteToken && !inviteError" :loading="inviteLoading" disabled>正在准备分享…</BmButton>
+        <BmState v-if="inviteError" kind="error" title="暂时无法分享" :message="inviteError" action="重试" :disabled="panelLocked || inviteLoading" @action="prepareInvite" />
+        <view v-if="inviteRendered" class="bm-divider" :style="inviteStyle" :aria-hidden="!inviteToken">
         <!-- #ifdef MP-WEIXIN -->
         <button class="bm-button dark" open-type="share" :disabled="panelLocked || !inviteToken" :hover-class="panelLocked || !inviteToken ? 'none' : 'bm-pressed'" :hover-stay-time="80">分享给微信好友</button>
         <!-- #endif -->
@@ -78,7 +81,7 @@
     </BmSheet>
     <BmSheet ref="scoreSheet" :model-value="scoreOpen" :title="scoreGame?.status === 'completed' ? '纠正最终比分' : '这局比分是多少？'" :busy="busy" :shared="!!sourceRect" :covered="!!confirmation" @ready="scoreReady" @close="requestCloseScore" @layout-change="invalidateShared" @closed="scoreClosed">
       <view v-if="scoreGame?.status === 'completed'" class="bm-muted">改变获胜方会同步调整助威积分；原奖励不足扣回时记为待抵扣积分。</view>
-      <template v-if="scoreGame"><view id="score-destination" :style="flying ? 'opacity:0' : ''"><ScoreBoard :team-a="teamName(scoreGame.teamA)" :team-b="teamName(scoreGame.teamB)" :score-a="scoreGame.scoreA" :score-b="scoreGame.scoreB" /></view><view v-if="scoreGame.status === 'completed'" class="bm-muted">原比分如上，请填写新的最终结果。</view><view class="bm-row" style="flex-wrap:nowrap"><view class="bm-score-side"><text class="bm-label">A 方最终分</text><BmField v-model="scoreA" :invalid="scoreAttempted && invalidScore(scoreA, scoreB)" label="A 方最终分" variant="score" type="number" maxlength="3" :disabled="scoreLocked" :adjust-position="false" /></view><text class="bm-versus">:</text><view class="bm-score-side"><text class="bm-label">B 方最终分</text><BmField v-model="scoreB" :invalid="scoreAttempted && invalidScore(scoreB, scoreA)" label="B 方最终分" variant="score" type="number" maxlength="3" :disabled="scoreLocked" :adjust-position="false" /></view></view><view class="bm-muted" style="margin-top:16rpx">支持 0 分，不允许平局；请与对方确认后提交。</view><template v-if="scoreGame.status === 'completed'"><text class="bm-label">纠错原因</text><BmField multiline v-model="scoreReason" :invalid="scoreAttempted && !scoreReason.trim()" label="纠错原因" maxlength="500" :disabled="scoreLocked" :adjust-position="false" /></template><view v-if="errorRendered" class="bm-error" :style="errorStyle">{{ displayedError }}</view><view class="bm-section"><BmButton :loading="busy" :disabled="scoreLocked" @click="submitScore">确认双方比分</BmButton><BmButton v-if="needsRefresh" variant="secondary" :disabled="scoreLocked" @click="recover">刷新数据，重新录入</BmButton></view></template>
+      <template v-if="scoreGame"><view id="score-destination" :style="flying ? 'opacity:0' : ''"><ScoreBoard :team-a="teamName(scoreGame.teamA)" :team-b="teamName(scoreGame.teamB)" :score-a="scoreGame.scoreA" :score-b="scoreGame.scoreB" /></view><view v-if="scoreGame.status === 'completed'" class="bm-muted">原比分如上，请填写新的最终结果。</view><view class="bm-row" style="flex-wrap:nowrap"><view class="bm-score-side"><text class="bm-label">A 方最终分</text><BmField v-model="scoreA" :invalid="scoreAttempted && invalidScore(scoreA, scoreB)" label="A 方最终分" variant="score" type="number" maxlength="3" :disabled="scoreLocked" /></view><text class="bm-versus">:</text><view class="bm-score-side"><text class="bm-label">B 方最终分</text><BmField v-model="scoreB" :invalid="scoreAttempted && invalidScore(scoreB, scoreA)" label="B 方最终分" variant="score" type="number" maxlength="3" :disabled="scoreLocked" /></view></view><view class="bm-muted" style="margin-top:16rpx">支持 0 分，不允许平局；请与对方确认后提交。</view><template v-if="scoreGame.status === 'completed'"><text class="bm-label">纠错原因</text><BmField multiline v-model="scoreReason" :invalid="scoreAttempted && !scoreReason.trim()" label="纠错原因" maxlength="500" :disabled="scoreLocked" /></template><view v-if="errorRendered" class="bm-error" :style="errorStyle">{{ displayedError }}</view><view class="bm-section"><BmButton :loading="busy" :disabled="scoreLocked" @click="submitScore">确认双方比分</BmButton><BmButton v-if="needsRefresh" variant="secondary" :disabled="scoreLocked" @click="recover">刷新数据，重新录入</BmButton></view></template>
     </BmSheet>
     <view v-if="flying && scoreGame" class="bm-score-proxy" :style="proxyStyle" aria-hidden="true"><ScoreBoard :team-a="teamName(scoreGame.teamA)" :team-b="teamName(scoreGame.teamB)" :score-a="scoreGame.scoreA" :score-b="scoreGame.scoreB" /></view>
     <CheerSheet :model-value="cheerOpen" :match-id="matchId" :game="cheerGame" :market="cheerGame ? cheerMarkets[cheerGame.id] : undefined" :team-a="teamName(cheerGame?.teamA || [])" :team-b="teamName(cheerGame?.teamB || [])" @close="cheerOpen = false" @busy="cheerBusy = $event" @refresh="refreshCheers" />
@@ -113,6 +116,8 @@ const user = useUserStore(), { measure, cancel: cancelFlip } = useLayoutMotion()
 const { pageStyle, sectionStyle } = usePageMotion();
 const matchId = ref(props.id), token = ref(props.invite || ""), inviteToken = ref(""), detail = ref<Detail | null>(null), preview = ref<Preview | null>(null), tab = ref("info"), gameFilter = ref("all"), busy = ref(false), loading = ref(false), error = ref(""), needsRefresh = ref(false), playerName = ref(""), notice = ref(""), highlighted = ref("");
 const claimingPlayerId = ref("");
+const inviteLoading = ref(false), inviteError = ref("");
+let inviteRevision = 0;
 const releaseOperation = ref(0);
 let releaseSequence = 0, releaseLoadingVisible = false, mutationSequence = 0, pageAlive = true;
 const panel = ref(""), panelOpen = ref(false), panelDirty = ref(false), editKey = ref(0), selectedPlayerId = ref(""), reasonTarget = ref(""), cancelReason = ref(""), audits = ref<Awaited<ReturnType<typeof api.audits>>>([]);
@@ -154,6 +159,7 @@ const { rendered: noticeRendered, displayed: displayedNotice, style: noticeStyle
 const { rendered: errorRendered, displayed: displayedError, style: errorStyle } = usePresence(() => error.value, { immediate: () => !detail.value });
 const { rendered: openingErrorRendered, displayed: displayedOpeningError, style: openingErrorStyle } = usePresence(() => !detail.value ? error.value : "", { immediate: () => !user.token });
 const { rendered: inviteRendered, style: inviteStyle } = usePresence(() => !!inviteToken.value, { immediate: () => !detail.value });
+const panelResizeKey = computed(() => JSON.stringify([panelMotion.phase.value, inviteLoading.value, inviteError.value, inviteRendered.value]));
 const canAddPlayer = computed(() => owner.value && detail.value?.match.status === "draft");
 const { rendered: addPlayerRendered, style: addPlayerStyle } = usePresence(() => canAddPlayer.value, { immediate: () => !owner.value });
 const resetMotionKey = () => `${user.token}:${matchId.value}`;
@@ -213,13 +219,14 @@ watch(cheersVisible, visible => {
 function feedback(message: string) { clearTimeout(noticeTimer); notice.value = message; noticeTimer = setTimeout(() => { notice.value = ""; }, 1800); }
 function changeTab(value: string) { if (releaseOperation.value || backgroundBlocked.value) return; invalidateShared(); uni.hideKeyboard(); tab.value = value; }
 function setGameFilter(value: string) { if (releaseOperation.value || backgroundBlocked.value) return; invalidateShared(); gameFilter.value = value; }
-function openPanel(value: string) { if (locked.value) return; uni.hideKeyboard(); panel.value = value; if (!panelOpen.value) panelMotion.cancel(); panelOpen.value = true; panelDirty.value = false; error.value = ""; }
+function openPanel(value: string) { if (locked.value) return; uni.hideKeyboard(); panel.value = value; if (!panelOpen.value) panelMotion.cancel(); panelOpen.value = true; panelDirty.value = false; error.value = ""; if (value === "invite") void prepareInvite(); }
 async function closePanel() { if (busy.value) return; if ((panelDirty.value || (panel.value === "reason" && cancelReason.value.trim())) && !await ask("放弃本次尚未保存的修改？")) return; panelOpen.value = false; panelDirty.value = false; }
 function panelClosed() { if (!panelOpen.value) { panel.value = ""; panelMotion.cancel(); } }
 watch(displayedPanel, () => { editKey.value++; });
 watch(panelOpen, open => { if (!open) { uni.hideKeyboard(); panelMotion.cancel(); } });
 function clearPrivatePresentation() {
   presentationRevision++;
+  inviteRevision++; inviteLoading.value = false; inviteError.value = "";
   cheerRevision++; clearTimeout(cheerTimer); cheerLoading.value = false; cheerMarkets.value = {}; cheerError.value = ""; cheerOpen.value = false; cheerBusy.value = false; cheerGameId.value = "";
   panelOpen.value = false; panelDirty.value = false; panel.value = ""; preview.value = null; audits.value = []; inviteToken.value = "";
   scoreOpen.value = false; scoreGame.value = null; selectedPlayerId.value = ""; playerName.value = ""; cancelReason.value = "";
@@ -296,8 +303,24 @@ function savePairs(pairs: string[][]) { run(() => api.pairs(matchId.value, pairs
 async function previewSchedule() { if (locked.value) return; busy.value = true; error.value = ""; const session = user.token; try { const result = await api.preview(matchId.value); if (session !== user.token || !owner.value) return; preview.value = result; panel.value = "preview"; if (!panelOpen.value) panelMotion.cancel(); panelOpen.value = true; } catch (e: any) { error.value = e.message; } finally { busy.value = false; } }
 function generate() { const version = preview.value?.version; if (version === undefined) return; run(() => api.generate(matchId.value, version), () => { panelOpen.value = false; tab.value = "games"; }); }
 async function transition(action: string) { const messages: Record<string, string> = { start: "开始后名单和对阵将锁定，确定开赛？", finish: "所有对局已处理，确定结束球局？", clear: "清除未开赛对局，返回名单编辑？", delete: "确定删除尚未开赛的球局？" }; if (locked.value || !await ask(messages[action])) return; if (action === "delete") { busy.value = true; try { await api.action(matchId.value, action, detail.value!.match.version); if (props.embedded) emit("deleted"); else uni.switchTab({ url: "/pages/schedule/index" }); } catch (e: any) { error.value = e.message; } finally { busy.value = false; } } else run(() => api.action(matchId.value, action, detail.value!.match.version), () => { panelOpen.value = false; if (action === "finish") tab.value = "results"; }); }
-async function invite() { if (locked.value || !await ask("生成新邀请会使旧邀请失效，已认领球友不受影响。继续？")) return; const session = user.token; run(async () => { const result = await api.invite(matchId.value); if (session === user.token && owner.value) inviteToken.value = result.token; }); }
+async function prepareInvite() {
+  if (!pageAlive || locked.value || !owner.value || !canInvite.value || inviteToken.value || inviteLoading.value) return;
+  const ticket = ++inviteRevision, session = user.token, id = matchId.value;
+  const current = () => pageAlive && ticket === inviteRevision && session === user.token && id === matchId.value && owner.value;
+  inviteLoading.value = true; inviteError.value = "";
+  try {
+    const result = await api.invite(id);
+    if (current()) inviteToken.value = result.token;
+  } catch (cause: any) {
+    if (!current()) return;
+    inviteError.value = cause.message || "分享内容暂时无法读取，请重试";
+    if (cause.code === 401 || cause.code === 403) { error.value = inviteError.value; detail.value = null; sharedMatch.value = null; clearPrivatePresentation(); }
+  } finally {
+    if (current()) inviteLoading.value = false;
+  }
+}
 function copyInvite() {
+  if (panelLocked.value || !inviteToken.value) return;
   // #ifdef H5
   const root = window.location.href.split("#")[0]; uni.setClipboardData({ data: `${root}#/pages/matchDetails/index?invite=${inviteToken.value}`, fail: () => { error.value = "复制失败，请重试"; } });
   // #endif
@@ -355,7 +378,7 @@ function submitScore() { const game = scoreGame.value; if (!game || locked.value
 function openReason(target: string) { if (locked.value) return; reasonTarget.value = target; cancelReason.value = ""; openPanel("reason"); }
 function cancelTarget() { const d = detail.value; if (!d || !cancelReason.value.trim()) return; if (reasonTarget.value === "match") run(() => api.action(matchId.value, "cancel", d.match.version, cancelReason.value.trim()), () => { panelOpen.value = false; }); else { const game = d.games.find(g => g.id === reasonTarget.value); if (game) run(() => api.cancelGame(matchId.value, game.id, game.version, cancelReason.value.trim()), () => { panelOpen.value = false; }); } }
 async function loadAudits() { if (locked.value) return; busy.value = true; error.value = ""; const session = user.token; try { const result = await api.audits(matchId.value); if (session !== user.token || !owner.value) return; audits.value = result; panel.value = "audits"; if (!panelOpen.value) panelMotion.cancel(); panelOpen.value = true; } catch (e: any) { error.value = e.message; } finally { busy.value = false; } }
-function auditLabel(action: string) { return ({ create: "创建球局", update: "修改配置", add: "新增选手", remove: "移除选手", pairs: "设置搭档", claim: "认领选手", unclaim: "解除认领", reset_invitation: "重置邀请", schedule: "确认排赛", clear: "清除排赛", start: "开始球局", finish: "结束球局", cancel: "取消球局", cancel_game: "取消对局", close_cheering: "结束本局助威", submit_score: "提交比分", correct_score: "纠正比分" } as Record<string, string>)[action] || action; }
+function auditLabel(action: string) { return ({ create: "创建球局", update: "修改配置", add: "新增选手", remove: "移除选手", pairs: "设置搭档", claim: "认领选手", unclaim: "解除认领", create_invitation: "邀请球友", reset_invitation: "重置邀请", schedule: "确认排赛", clear: "清除排赛", start: "开始球局", finish: "结束球局", cancel: "取消球局", cancel_game: "取消对局", close_cheering: "结束本局助威", submit_score: "提交比分", correct_score: "纠正比分" } as Record<string, string>)[action] || action; }
 let firstResume = true;
 function resume() {
   if (props.active === false) return;

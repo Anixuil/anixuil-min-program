@@ -1,15 +1,17 @@
 <template>
-  <view class="bm-field" :class="{ 'is-multiline': multiline, 'is-score': variant === 'score' && !multiline, 'is-focused': focused && !disabled, 'is-invalid': invalid, 'is-disabled': disabled, 'is-reduced': reducedMotion }">
-    <textarea v-if="multiline" class="bm-field-native bm-field-multiline" :value="modelValue" :disabled="disabled" :maxlength="maxlength" :placeholder="placeholder" :adjust-position="adjustPosition" :confirm-type="confirmType" :placeholder-style="placeholderStyle" :aria-label="label || placeholder" :aria-invalid="invalid" @input="input" @confirm="confirm" @focus="onFocus" @blur="onBlur" />
-    <input v-else class="bm-field-native" :class="{ 'bm-field-score': variant === 'score' }" :value="modelValue" :disabled="disabled" :password="password" :type="type" :maxlength="maxlength" :placeholder="placeholder" :adjust-position="adjustPosition" :confirm-type="confirmType" :placeholder-style="placeholderStyle" :aria-label="label || placeholder" :aria-invalid="invalid" @input="input" @confirm="confirm" @focus="onFocus" @blur="onBlur" />
+  <view ref="fieldElement" class="bm-field" :class="{ 'is-multiline': multiline, 'is-score': variant === 'score' && !multiline, 'is-focused': focused && !disabled, 'is-invalid': invalid, 'is-disabled': disabled, 'is-reduced': reducedMotion }">
+    <textarea v-if="multiline" :fixed="!!sheet" class="bm-field-native bm-field-multiline" :value="modelValue" :disabled="disabled" :maxlength="maxlength" :placeholder="placeholder" :adjust-position="sheet ? false : adjustPosition" :cursor-spacing="cursorSpacing" :focus="focused" @keyboardheightchange="onKeyboard" :confirm-type="confirmType" :placeholder-style="placeholderStyle" :aria-label="label || placeholder" :aria-invalid="invalid" @input="input" @confirm="confirm" @focus="onFocus" @blur="onBlur" />
+    <input v-else class="bm-field-native" :class="{ 'bm-field-score': variant === 'score' }" :value="modelValue" :disabled="disabled" :password="password" :type="type" :maxlength="maxlength" :placeholder="placeholder" :adjust-position="sheet ? false : adjustPosition" :cursor-spacing="cursorSpacing" :focus="focused" @keyboardheightchange="onKeyboard" :confirm-type="confirmType" :placeholder-style="placeholderStyle" :aria-label="label || placeholder" :aria-invalid="invalid" @input="input" @confirm="confirm" @focus="onFocus" @blur="onBlur" />
   </view>
 </template>
 <script lang="ts">
 export default { inheritAttrs: false };
 </script>
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { inject, onUnmounted, ref, watch } from "vue";
 import { reducedMotion } from "@/composables/useMotion";
+import { useMotionClock } from "@/composables/useMotionState";
+import { sheetKeyboardKey, type FieldKeyboardEvent, type SheetField } from "@/composables/useSheetKeyboard";
 
 const props = withDefaults(defineProps<{
   modelValue: string | number;
@@ -23,18 +25,34 @@ const props = withDefaults(defineProps<{
   maxlength?: string | number;
   placeholder?: string;
   adjustPosition?: boolean;
+  cursorSpacing?: number;
   confirmType?: "send" | "search" | "next" | "go" | "done";
-}>(), { variant: "default", type: "text", maxlength: 140, placeholder: "", label: "", adjustPosition: true, confirmType: "done" });
-type FieldEvent = { detail: { value: string } };
+}>(), { variant: "default", type: "text", maxlength: 140, placeholder: "", label: "", adjustPosition: true, cursorSpacing: 12, confirmType: "done" });
+type FieldEvent = { detail: { value: string; height?: number } };
 const emit = defineEmits<{
   (e: "update:modelValue", value: string): void;
   (e: "confirm", event: FieldEvent): void;
   (e: "focus", event: FieldEvent): void;
   (e: "blur", event: FieldEvent): void;
+  (e: "keyboardheightchange", event: FieldKeyboardEvent): void;
 }>();
 const placeholderStyle = "color:#818b83;font-size:28rpx;";
 const focused = ref(false);
-watch(() => props.disabled, disabled => { if (disabled) focused.value = false; });
+const sheet = inject(sheetKeyboardKey, undefined);
+const clock = useMotionClock();
+const fieldElement = ref<any>(null);
+const field: SheetField = {
+  async measure() { const [rect] = await clock.measure(".bm-field"); return rect; },
+  blur() {
+    focused.value = false;
+    // #ifdef H5
+    const root = fieldElement.value?.$el || fieldElement.value;
+    root?.querySelector("input,textarea")?.blur();
+    // #endif
+  },
+};
+watch(() => props.disabled, disabled => { if (disabled) { field.blur(); sheet?.blur(field); } });
+onUnmounted(() => sheet?.blur(field));
 function input(event: FieldEvent) {
   if (!props.disabled) emit("update:modelValue", event.detail.value);
 }
@@ -43,8 +61,17 @@ function confirm(event: FieldEvent) {
   emit("update:modelValue", event.detail.value);
   emit("confirm", event);
 }
-function onFocus(event: FieldEvent) { focused.value = !props.disabled; emit("focus", event); }
-function onBlur(event: FieldEvent) { focused.value = false; emit("blur", event); }
+function onFocus(event: FieldEvent) {
+  if (props.disabled) return;
+  focused.value = true;
+  sheet?.focus(field, event.detail.height);
+  emit("focus", event);
+}
+function onBlur(event: FieldEvent) { focused.value = false; sheet?.blur(field); emit("blur", event); }
+function onKeyboard(event: FieldKeyboardEvent) {
+  sheet?.keyboard(field, event);
+  emit("keyboardheightchange", event);
+}
 </script>
 <style scoped lang="scss">
 @import "@/styles/_tokens.scss";

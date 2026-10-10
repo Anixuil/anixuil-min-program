@@ -58,15 +58,13 @@ function later(action: () => void, ms: number) {
   timers.add(timer);
 }
 function clearFlight() { from.value = to.value = null; moved.value = false; }
-function showTabBar() { uni.showTabBar({ animation: false }); }
 async function open(value: CompetitionSummary, origin: MatchSource) {
   if (!supported) { await openMatch(value); return; }
   if (opening || match.value || !visible.value) return;
   opening = true;
   const ticket = ++generation;
-  await new Promise<void>(resolve => uni.hideTabBar({ animation: false, complete: () => resolve() }));
   sourceRect = reducedMotion.value ? null : await origin.measure();
-  if (!alive || ticket !== generation || !visible.value) { opening = false; showTabBar(); return; }
+  if (!alive || ticket !== generation || !visible.value) { opening = false; return; }
   source = origin;
   phase.value = "preparing";
   flightMatch.value = { ...value };
@@ -99,7 +97,6 @@ function closeImmediately() {
   hiddenMatchCard.value = "";
   match.value = flightMatch.value = null;
   source = null; sourceRect = restingHeader = null; opening = requestingBack = false;
-  showTabBar();
   void nextTick(() => { if (alive) emit("closed"); });
 }
 async function back() {
@@ -119,7 +116,6 @@ async function back() {
   // Restore the header even after scrolling; never discard the reverse pairing.
   const header = await content.value?.restoreHeader();
   if (!alive || ticket !== generation) return;
-  await new Promise<void>(resolve => uni.showTabBar({ animation: false, complete: () => resolve() }));
   const target = await source?.measure();
   if (!alive || ticket !== generation) return;
   const start = header && header.rects.surface.top >= navigation.value.height ? header : restingHeader;
@@ -142,12 +138,11 @@ onHide(() => {
   content.value?.suspend();
   if (phase.value === "closing") closeImmediately();
   else if (match.value) phase.value = "open";
-  if (match.value || opening) showTabBar();
 });
-onShow(() => { visible.value = true; if (match.value) uni.hideTabBar({ animation: false }); });
+onShow(() => { visible.value = true; });
 onResize(() => { navigation.value = navigationLayout(); content.value?.invalidateShared(); if (phase.value === "opening") { clearTimers(); clearFlight(); phase.value = "open"; } });
 function share() { return content.value?.share() || { title: BRAND_NAME, path: "/pages/index/index" }; }
-onUnmounted(() => { alive = false; generation++; clearTimers(); if (source?.key === hiddenMatchCard.value) hiddenMatchCard.value = ""; if (match.value || opening) showTabBar(); });
+onUnmounted(() => { alive = false; generation++; clearTimers(); if (source?.key === hiddenMatchCard.value) hiddenMatchCard.value = ""; });
 defineExpose({ isOpen: match, open, share });
 </script>
 <style scoped lang="scss">

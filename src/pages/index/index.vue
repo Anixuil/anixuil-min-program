@@ -21,11 +21,13 @@
       </view>
     </template>
     <view :style="sectionStyle(user.token ? 5 : 3, 'fade')"><view class="bm-muted" style="text-align:center;margin-top:40rpx">{{ BRAND_TAGLINE }}</view></view>
+    <BmTabBar active="home" :hidden="!!matchHost?.isOpen" />
   </view>
 
   </view>
 </template>
 <script setup lang="ts">
+import BmTabBar from "@/components/badminton/BmTabBar.vue";
 import { onUnmounted, ref, watch } from "vue";
 import { onShow, onPullDownRefresh, onShareAppMessage } from "@dcloudio/uni-app";
 import BmBrand from "@/components/badminton/BmBrand.vue";

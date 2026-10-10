@@ -1,5 +1,6 @@
-<template><view><MatchDetailHost ref="matchHost" title="我的球局" @closed="list?.refresh()" /><MatchList ref="list" :suspended="!!matchHost?.isOpen" /></view></template>
+<template><view><MatchDetailHost ref="matchHost" title="我的球局" @closed="list?.refresh()" /><MatchList ref="list" :suspended="!!matchHost?.isOpen" /><BmTabBar active="schedule" :hidden="!!matchHost?.isOpen" /></view></template>
 <script setup lang="ts">
+import BmTabBar from "@/components/badminton/BmTabBar.vue";
 import { nextTick, ref } from "vue";
 import { onShow, onPullDownRefresh, onReachBottom, onShareAppMessage } from "@dcloudio/uni-app";
 import { BRAND_NAME } from "@/config/brand";

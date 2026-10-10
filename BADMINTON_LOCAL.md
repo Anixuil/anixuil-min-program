@@ -5,14 +5,18 @@
 
 ## 本地启动
 
-先按后端 `D:/code/self/backend/ani-server/BADMINTON_LOCAL.md` 升级原有羽球表，再启动新后端。账号、球局、选手、双方、比分、签到及羽球信息直接复用原表和原 ID，不另建 `bm_*` 核心表。旧微信账号和邮箱密码继续使用；旧分数、经验及历史比分保留，新的娱乐积分从 0 开始。
+先按后端 `D:/code/self/backend/ani-server/README.md` 升级原有羽球表，再启动新后端。账号、球局、选手、双方、比分、签到及羽球信息直接复用原表和原 ID，不另建 `bm_*` 核心表。旧微信账号和邮箱密码继续使用；旧分数、经验及历史比分保留，新的娱乐积分从 0 开始。
 
-独立 Docker 本地库仅是可选开发方式，空库必须先导入原业务表结构才能执行这次升级。已有试验 `bm_*` 表保留，但本次不自动合并或删除。
+日常连接现有业务库。需要隔离开发或数据库联调时，自行准备本机 MySQL 与 Redis；空库通过原 `prisma/migrations` 完整历史建立结构，已有结构须先核对迁移记录。已有试验 `bm_*` 表保留，本次不自动合并或删除。
 
-后端统一使用原 `prisma/schema.prisma` 和 `@prisma/client`。数据库只读取进程环境或原 `.env` 的 `DATABASE_URL`；不再使用 `BADMINTON_DATABASE_URL`，羽球配置文件中的数据库地址也不覆盖原配置。微信、Redis 等配置仍按进程环境、`.env.badminton.local`、`.env.badminton`、`.env` 的优先级读取，`BADMINTON_REDIS_URL` 缺省回退 `REDIS_URL`。调整连接时保留微信配置，不要覆盖整个配置文件。
+后端统一使用原 `prisma/schema.prisma` 和 `@prisma/client`。所有运行配置只读取进程环境与后端根目录 `.env`，同名变量以进程环境为准；数据库使用 `DATABASE_URL`，Redis 使用 `REDIS_URL`，微信使用 `WX_APPID`、`WX_SECRET`。后端 `.env.example` 是配置参考，调整连接时保留现有凭据，不要覆盖整个配置文件。前端请求地址使用 `VITE_BADMINTON_ORIGIN`：`pnpm dev:mp-weixin` 加载 `.env.development`，请求 `http://127.0.0.1:3000/ani-server`；`pnpm build:mp-weixin` 加载 `.env.production`，请求 `https://api.anixuil.com/ani-server`。微信开发者工具开发时使用 `dist/dev/mp-weixin`，正式上传使用 `dist/build/mp-weixin`。
+
+开发时查看线上效果，先停止已有开发编译，再执行 `pnpm dev:mp-weixin:prod`：保持开发监听编译，读取 `.env.production` 并连接 `https://api.anixuil.com/ani-server`，微信开发者工具仍打开 `dist/dev/mp-weixin`。切回本地时停止该命令，再执行 `pnpm dev:mp-weixin`。连接线上时，提交操作会写入线上数据。
+
+真机联调时，将 `.env.local.example` 复制为 `.env.development.local`，把地址改为开发电脑的局域网 IP（端口 3000）；该覆盖只用于开发，不影响生产配置。修改环境文件后需重新启动开发编译。生产域名需配置有效 HTTPS 证书，并在微信小程序后台加入 request 合法域名。
 
 ```powershell
-Copy-Item .env.local.example .env.local
+Copy-Item .env.local.example .env.development.local
 pnpm install
 pnpm dev:h5
 ```
@@ -48,11 +52,12 @@ H5 使用 `http://localhost:5173`，`/ani-server` 代理到 `VITE_BADMINTON_ORIG
 
 ## 本次部署顺序
 
-先备份并核对目标数据库的实际结构与迁移历史，再由用户在后端通过原 schema 的 `pnpm prisma:deploy` 部署尚未执行的迁移，执行 `pnpm prisma:generate` 后重启后端，最后更新前端（详见后端同名文档）。如果之前执行过 `db push` 或羽球独立迁移，不能直接重复执行升级 SQL、重置数据库或跳过迁移；需先核对已有字段。`pnpm run dev` 会自动生成客户端，但不会自动迁移。不能只发布前端；旧后端不提供积分与封盘接口。
-活动迁移统一放在原 `prisma/migrations`，保留既有历史及 `20261008000000_reuse_legacy_tables`。独立羽球目录中的旧迁移仅作归档，不参与部署。原表没有相应结构的邀请、幂等、积分流水和助威订单仍需补充辅助记录表，审计复用 `sys_log`。迁移遇到 `P3005` 或其他历史冲突时直接停止，不自动登记空标记、跳过升级或重试。共享数据库不要使用强制 push 或 reset，也不要部署归档迁移。
-本次仅在工作区提供迁移源码与业务源码，不执行数据库迁移或客户端生成，不手改生成目录。
+先备份并核对目标数据库的实际结构与迁移历史，再由用户在后端通过原 schema 的 `pnpm prisma:deploy` 部署尚未执行的迁移，执行 `pnpm prisma:generate` 后重启后端，最后更新前端（详见后端 `README.md`）。如果之前执行过 `db push` 或羽球独立迁移，不能直接重复执行升级 SQL、重置数据库或跳过迁移；需先核对已有字段。`pnpm run dev` 会自动生成客户端，但不会自动迁移。不能只发布前端；旧后端不提供积分与封盘接口。
+活动迁移统一放在原 `prisma/migrations`，保留既有历史及 `20261008000000_reuse_legacy_tables`。废弃的独立羽球迁移目录、旧生成客户端和数据库命令别名已清理，后续统一使用 `prisma:*` 命令。原表没有相应结构的邀请、幂等、积分流水和助威订单仍需补充辅助记录表，审计复用 `sys_log`。迁移遇到 `P3005` 或其他历史冲突时直接停止，不自动登记空标记、跳过升级或重试。共享数据库不要使用强制 push 或 reset。
+本次仅清理工作区中的废弃文件和配置，不执行数据库迁移或客户端生成，不修改数据库数据。
 
 ## 验收状态
 
 本次只进行了静态代码 review。没有运行安装、构建、测试、类型检查、H5、开发者工具或真机，不能据此宣称本地已跑通或可上线。
-完整自动化与人工验收清单、测试账号、可选本地隔离测试库和同库部署准备见后端同名文档。
+完整自动化与人工验收清单、测试账号、可选本地隔离测试库和同库部署准备见后端 `README.md`。
+

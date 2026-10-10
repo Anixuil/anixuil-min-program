@@ -32,9 +32,10 @@
   .bm-modal { position: fixed; top: 0; bottom: 0; left: 0; right: 0; z-index: 60; pointer-events: auto; }
   .bm-backdrop { position: absolute; top: 0; bottom: 0; left: 0; right: 0; background: rgba(23,35,29,.36); opacity: 0; transition: opacity $bm-motion-sheet $bm-ease; }
   .bm-sheet { position: absolute; bottom: 0; left: 0; right: 0; max-width: 680px; margin: auto; padding-bottom: env(safe-area-inset-bottom); border-radius: 28rpx 28rpx 0 0; background: $bm-surface; transform: translateY(100%); transform-origin: center bottom; filter: none; opacity: 0; pointer-events: none; transition: transform $bm-motion-sheet $bm-ease, filter $bm-motion-sheet $bm-ease, opacity $bm-motion-content ease; }
+  .bm-sheet-header { overflow: hidden; }
   .bm-sheet-handle { width: 56rpx; height: 6rpx; margin: 18rpx auto 8rpx; border-radius: 6rpx; background: $bm-line; }
   .bm-sheet-title { display: flex; align-items: center; justify-content: space-between; padding: 10rpx 32rpx 24rpx; }
-  .bm-sheet-scroll { max-height: 78vh; overscroll-behavior: contain; transition: height $bm-motion-content $bm-ease; }
+  .bm-sheet-scroll { min-height: 0; overscroll-behavior: contain; transition: height $bm-motion-content $bm-ease; }
   .bm-sheet-body { padding: 0 32rpx 32rpx; }
   .is-open .bm-backdrop { opacity: 1; }
   .is-open .bm-sheet { transform: translateY(0); opacity: 1; pointer-events: auto; }

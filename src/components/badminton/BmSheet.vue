@@ -2,8 +2,8 @@
   <view v-if="mounted" ref="modalElement" class="bm-modal" :aria-hidden="!modelValue || covered" :inert="!modelValue || covered ? true : undefined" :class="{ 'is-open': visible, 'is-closing': !modelValue, 'is-reduced': reducedMotion || !active, 'is-shared': shared, 'is-covered': covered }">
     <view class="bm-backdrop" @click="requestClose" @touchmove.stop.prevent />
     <view class="bm-sheet" :style="keyboardStyle" role="dialog" :aria-label="title" @touchmove.stop>
-      <view class="bm-sheet-handle" /><view class="bm-row bm-between bm-sheet-title"><text class="bm-heading" :style="titleStyle">{{ title }}</text><button class="bm-icon-button" :disabled="busy || !modelValue || covered" :hover-class="busy || !modelValue || covered ? 'none' : 'bm-touch'" aria-label="关闭" @click="requestClose">×</button></view>
-      <scroll-view scroll-y class="bm-sheet-scroll" :style="scrollStyle" @scroll="$emit('layout-change')"><view class="bm-sheet-body"><slot /></view></scroll-view>
+      <view class="bm-sheet-header"><view class="bm-sheet-handle" /><view class="bm-row bm-between bm-sheet-title"><text class="bm-heading" :style="titleStyle">{{ title }}</text><button class="bm-icon-button" :disabled="busy || !modelValue || covered" :hover-class="busy || !modelValue || covered ? 'none' : 'bm-touch'" aria-label="关闭" @click="requestClose">×</button></view></view>
+      <scroll-view scroll-y class="bm-sheet-scroll" :style="scrollStyle" :scroll-top="scrollTop" :scroll-with-animation="false" @scroll="onScroll" @touchmove="sheetKeyboard.onTouchMove"><view class="bm-sheet-body"><slot /></view></scroll-view>
     </view>
   </view>
 </template>
@@ -12,28 +12,45 @@ import { computed, provide, nextTick, onMounted, onUpdated, onUnmounted, ref, wa
 import { onHide, onShow } from "@dcloudio/uni-app";
 import { reducedMotion, useLayoutMotion } from "@/composables/useMotion";
 import { motionDuration, useMotionClock } from "@/composables/useMotionState";
-const props = defineProps<{ modelValue: boolean; title: string; busy?: boolean; shared?: boolean; covered?: boolean; contentKey?: string | number }>();
+import { useSheetKeyboard } from "@/composables/useSheetKeyboard";
+const props = defineProps<{ modelValue: boolean; title: string; busy?: boolean; shared?: boolean; covered?: boolean; contentKey?: string | number; resizeKey?: string | number }>();
 const emit = defineEmits<{ (e: "update:modelValue", value: boolean): void; (e: "close"): void; (e: "ready"): void; (e: "closed"): void; (e: "layout-change"): void }>();
-const mounted = ref(false), visible = ref(false), keyboard = ref(0);
+const mounted = ref(false), visible = ref(false);
 const modalElement = ref<any>(null), bodyHeight = ref(0);
 const { measure } = useLayoutMotion();
 const titleClock = useMotionClock(), active = titleClock.active, titleStyle = ref("");
 const fitClock = useMotionClock();
 defineExpose({ measure });
-let ticket = 0, measureTicket = 0, readyTicket = -1, alive = true;
+let ticket = 0, measureTicket = 0, fitRevision = 0, readyTicket = -1, alive = true;
 let fitSuspended = Boolean(props.covered);
 function reportReady() { if (readyTicket !== ticket) { readyTicket = ticket; emit("ready"); } }
 let timer: ReturnType<typeof setTimeout> | undefined;
-const keyboardStyle = computed(() => `bottom:${keyboard.value}px;`);
+const sheetKeyboard = useSheetKeyboard({
+  enabled: () => props.modelValue && !props.covered && active.value,
+  layoutChange: () => emit("layout-change"),
+});
+const { style: keyboardStyle, scrollTop, onScroll } = sheetKeyboard;
 const scrollStyle = computed(() => {
-  const available = Math.max(120, uni.getWindowInfo().windowHeight * .78 - keyboard.value);
-  return `height:${Math.min(bodyHeight.value || available, available)}px;${keyboard.value || !visible.value || props.shared ? 'transition:none;' : ''}`;
+  const available = sheetKeyboard.available.value;
+  return `height:${Math.min(bodyHeight.value || available, available)}px;${sheetKeyboard.avoidingKeyboard.value || sheetKeyboard.settling.value || !visible.value || props.shared ? 'transition:none;' : ''}`;
 });
 async function fitBody() {
   if (!mounted.value || !props.modelValue || !active.value || props.covered || fitSuspended) return;
   const current = ticket, measurement = ++measureTicket;
   const [body] = await fitClock.measure(".bm-sheet-body");
-  if (alive && current === ticket && measurement === measureTicket && body && props.modelValue && active.value && !props.covered && !fitSuspended) bodyHeight.value = Math.ceil(body.height);
+  if (alive && current === ticket && measurement === measureTicket && body && props.modelValue && active.value && !props.covered && !fitSuspended) {
+    const nextHeight = Math.ceil(body.height);
+    if (bodyHeight.value !== nextHeight) { bodyHeight.value = nextHeight; sheetKeyboard.reveal(); }
+  }
+}
+async function queueFitBody() {
+  const revision = ++fitRevision, current = fitClock.ticket();
+  await nextTick();
+  if (!fitClock.valid(current) || revision !== fitRevision) return;
+  await fitBody();
+  if (!fitClock.valid(current) || revision !== fitRevision) return;
+  // Slotted content can reach the mini-program view after the sheet's update.
+  fitClock.later(() => { if (revision === fitRevision) void fitBody(); }, 32);
 }
 function resumeFitAfterDepth() {
   fitClock.clear(); measureTicket++; fitSuspended = true;
@@ -50,7 +67,11 @@ function resumeFitAfterDepth() {
 }
 watch(() => props.covered, resumeFitAfterDepth, { flush: "sync" });
 provide("bm:fit-sheet", fitBody);
+// Content resizes must not reset scrolling, keyboard ownership or the title motion.
+watch(() => props.resizeKey, queueFitBody, { flush: "post" });
+watch(() => props.contentKey, () => sheetKeyboard.reset(), { flush: "sync" });
 watch(() => [props.contentKey, props.title], async () => {
+  void sheetKeyboard.refresh();
   titleClock.clear(); titleStyle.value = "";
   if (!props.modelValue || !visible.value || props.covered || reducedMotion.value || !active.value) return;
   const current = titleClock.ticket();
@@ -141,7 +162,6 @@ watch(reducedMotion, reduced => {
   void nextTick().then(fitBody);
 });
 function requestClose() { if (props.busy || !props.modelValue || props.covered) return; emit("close"); }
-function onKeyboard(event: { height: number }) { keyboard.value = event.height; if (props.modelValue) emit("layout-change"); }
 onHide(() => {
   ticket++; measureTicket++; clearTimeout(timer); titleClock.clear(); titleStyle.value = "";
   // #ifdef H5
@@ -158,15 +178,14 @@ onShow(async () => {
   await nextTick();
   if (alive && current === ticket && props.modelValue) { void fitBody(); reportReady(); }
 });
-onUpdated(fitBody);
+onUpdated(queueFitBody);
 onMounted(() => {
-  uni.onKeyboardHeightChange?.(onKeyboard);
   // #ifdef H5
   document.addEventListener("keydown", trapKey);
   // #endif
 });
 onUnmounted(() => {
-  alive = false; ticket++; measureTicket++; clearTimeout(timer); fitClock.clear(); uni.offKeyboardHeightChange?.(onKeyboard);
+  alive = false; ticket++; measureTicket++; clearTimeout(timer); fitClock.clear();
   // #ifdef H5
   previousFocus = pendingFocus = null;
   document.removeEventListener("keydown", trapKey);

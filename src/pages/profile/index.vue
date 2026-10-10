@@ -15,10 +15,12 @@
   <view class="bm-card bm-settings" :style="sectionStyle(user.token ? 5 : 2)"><view class="bm-row bm-between"><view class="bm-grow"><text class="bm-heading">减少动态效果</text><view class="bm-muted">保留反馈，减少位移和弹性</view></view><switch :checked="preference" color="#e96b35" @change="setReducedMotion($event.detail.value)" /></view><view v-if="reducedMotion && !preference" class="bm-muted">当前跟随系统减少动态效果设置。</view></view>
   <view v-if="user.token" :style="sectionStyle(6, 'fade')"><BmButton variant="ghost" :loading="busy && !editing" :disabled="busy || loading" @click="logout">退出登录</BmButton></view>
   </view>
-  <BmSheet :model-value="editing" title="球场上的名字" :busy="busy" :covered="!!confirmation" @close="closeEdit"><text class="bm-label">昵称</text><BmField v-model="nickname" label="昵称" maxlength="80" :disabled="busy || savedNickname || !editing" :adjust-position="false" /><view v-if="editErrorRendered" class="bm-error" :style="editErrorStyle">{{ displayedEditError }}</view><view class="bm-section"><BmButton :loading="busy" :disabled="!nickname.trim() || !editing" @click="save">{{ savedNickname ? '重新刷新资料' : '保存昵称' }}</BmButton></view></BmSheet>
+  <BmSheet :model-value="editing" title="球场上的名字" :busy="busy" :covered="!!confirmation" @close="closeEdit"><text class="bm-label">昵称</text><BmField v-model="nickname" label="昵称" maxlength="80" :disabled="busy || savedNickname || !editing" /><view v-if="editErrorRendered" class="bm-error" :style="editErrorStyle">{{ displayedEditError }}</view><view class="bm-section"><BmButton :loading="busy" :disabled="!nickname.trim() || !editing" @click="save">{{ savedNickname ? '重新刷新资料' : '保存昵称' }}</BmButton></view></BmSheet>
   <BmConfirm :message="confirmation" @answer="answer" />
+  <BmTabBar active="profile" :hidden="backgroundBlocked" />
 </view></template>
 <script setup lang="ts">
+import BmTabBar from "@/components/badminton/BmTabBar.vue";
 import BmBrand from "@/components/badminton/BmBrand.vue";
 import BmField from "@/components/badminton/BmField.vue";
 import PointsCard from "@/components/badminton/PointsCard.vue";
