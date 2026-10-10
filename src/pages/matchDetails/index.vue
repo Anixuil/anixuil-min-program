@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { nextTick, ref } from "vue";
 import { onLoad, onShow, onHide, onShareAppMessage, onPullDownRefresh, onPageScroll, onResize } from "@dcloudio/uni-app";
+import { BRAND_NAME } from "@/config/brand";
 import MatchDetailContent from "@/components/badminton/MatchDetailContent.vue";
 import { markMatchReady } from "@/composables/useMotion";
 const content = ref<InstanceType<typeof MatchDetailContent> | null>(null);
@@ -12,5 +13,5 @@ onHide(() => content.value?.suspend());
 onPageScroll(() => content.value?.invalidateShared());
 onResize(() => content.value?.invalidateShared());
 onPullDownRefresh(async () => { try { await content.value?.reload(); } finally { uni.stopPullDownRefresh(); } });
-onShareAppMessage(() => content.value?.share() || { title: "羽你同场", path: "/pages/index/index" });
+onShareAppMessage(() => content.value?.share() || { title: BRAND_NAME, path: "/pages/index/index" });
 </script>

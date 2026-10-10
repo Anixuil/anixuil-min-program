@@ -1,7 +1,7 @@
 <template><view class="bm-page" :class="{ 'is-reduced': reducedMotion }">
   <view v-if="noticeRendered" class="bm-working" :style="noticeStyle">{{ displayedNotice }}</view>
   <view id="profile-background" :style="backgroundStyle" :aria-hidden="backgroundBlocked" :inert="backgroundBlocked ? true : undefined">
-  <view class="bm-page-header" :style="sectionStyle(0)"><text class="bm-eyebrow">PLAYER / 我的战绩</text><text class="bm-title">我的羽球</text></view>
+  <view class="bm-page-header" :style="sectionStyle(0)"><BmBrand compact /><text class="bm-title">我的羽球</text></view>
   <view v-if="!user.token" :style="sectionStyle(1)"><BmState title="记住每一场好球" message="登录后查看真实的比赛战绩。" action="登录 / 注册" @action="toLogin" /></view>
   <template v-else>
     <view class="bm-card bm-profile-identity" :style="sectionStyle(1)"><view class="bm-row"><view class="bm-avatar large">{{ user.userInfo?.nickname?.slice(0, 1) || '羽' }}</view><view class="bm-grow"><text class="bm-heading">{{ user.userInfo?.nickname || '球友' }}</text><view class="bm-muted">{{ user.userInfo?.email || '微信球友' }}</view></view><button class="bm-text-button" :disabled="busy || loading" @click="edit" :hover-class="busy || loading ? 'none' : 'bm-touch'" :hover-stay-time="80">编辑</button></view></view>
@@ -19,6 +19,7 @@
   <BmConfirm :message="confirmation" @answer="answer" />
 </view></template>
 <script setup lang="ts">
+import BmBrand from "@/components/badminton/BmBrand.vue";
 import BmField from "@/components/badminton/BmField.vue";
 import PointsCard from "@/components/badminton/PointsCard.vue";
 import { usePointsStore } from "@/store/modules/points";

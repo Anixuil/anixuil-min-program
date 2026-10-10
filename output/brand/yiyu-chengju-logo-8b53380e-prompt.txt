@@ -1,0 +1,12 @@
+Tool: built-in image_gen
+Output: yiyu-chengju-logo-8b53380e.png
+
+Use case: logo-brand.
+Asset type: a finished first logo concept for the Chinese badminton mini-program brand “一羽成局”.
+Primary request: create one original, polished, memorable logo, expressing badminton players coming together into a well-organized match. The product supports inviting friends, arranging rounds, keeping score, and recording match history.
+Style: flat, crisp, vector-friendly geometric logo artwork, with a distinctive silhouette and strong recognition at small avatar sizes. Warm, sociable, confident sports identity.
+Symbol: a compact unified emblem based on a badminton shuttlecock. Three broad geometric feather blades converge into one rounded cork head, suggesting players gathering into a game. Integrate a subtle open right-angle court corner or strong horizontal “一” baseline into the same emblem; keep this secondary and visually unified, not a separate detailed court drawing. Use broad shapes and intentional negative space, gently rounded corners, balanced optical weight, and a slight forward/upward energy. Make the shuttlecock recognizable rather than resembling a leaf, bird, flower, rocket, or abstract arrow.
+Composition: square, single centered vertical logo lockup. Large emblem above the exact four-character Chinese brand name. Ample clear margin around the logo. This is a clean logo deliverable, not a brand presentation sheet or a product mockup.
+Color palette: solid warm orange #E96B35 for the emblem; deep ink green #192C24 for the wordmark; uniform warm off-white #F4F5F2 canvas.
+Text (verbatim): “一羽成局”. Exactly these four characters, in this order. Use highly legible, carefully spaced, modern bold Chinese sans-serif lettering with clean balanced strokes. No English, pinyin, slogan, extra labels, or other text.
+Constraints: one coherent logo only; clean sharp edges; generous negative space; no tiny feather detail; no gradients, shadows, 3D, textures, photo styling, ornamental framing, crossed racket badge, mascots, balls from other sports, stock-logo look, existing brand marks, watermark, or registration symbols.

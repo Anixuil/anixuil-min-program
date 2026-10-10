@@ -1,9 +1,9 @@
 <template>
   <view>
-  <MatchDetailHost ref="matchHost" title="羽你同场" @closed="load" />
+  <MatchDetailHost ref="matchHost" :title="BRAND_NAME" @closed="load" />
   <view class="bm-page" :class="{ 'is-reduced': reducedMotion }">
-    <view class="bm-row bm-between bm-home-heading" :style="sectionStyle(0)"><view class="bm-grow"><text class="bm-eyebrow">羽你同场 / TOGETHER ON COURT</text><text class="bm-title" style="margin-top:16rpx">{{ user.userInfo?.nickname ? `${user.userInfo.nickname}，上场吧` : '一起，打场好球' }}</text></view></view>
-    <view class="bm-hero bm-home-hero" :style="sectionStyle(1)"><view class="bm-court" /><view class="bm-hero-content"><text class="bm-eyebrow">羽你同场</text><text class="bm-hero-title">好球，一起开场。</text><view class="bm-muted">约好球友，排好球局，记下每一场好球。</view><view style="margin-top:24rpx"><BmButton @click="create">＋ 发起一场球局</BmButton></view></view></view>
+    <view class="bm-row bm-between bm-home-heading" :style="sectionStyle(0)"><view class="bm-grow"><BmBrand compact /><text class="bm-title" style="margin-top:16rpx">{{ user.userInfo?.nickname ? `${user.userInfo.nickname}，上场吧` : '一起，打场好球' }}</text></view></view>
+    <view class="bm-hero bm-home-hero" :style="sectionStyle(1)"><view class="bm-court" /><view class="bm-hero-content"><text class="bm-eyebrow">{{ BRAND_NAME }}</text><text class="bm-hero-title">好球，有序成局。</text><view class="bm-muted">约好球友，排好球局，记下每一场好球。</view><view style="margin-top:24rpx"><BmButton @click="create">＋ 发起一场球局</BmButton></view></view></view>
     <view v-if="!user.token" :style="sectionStyle(2)"><BmState title="球友都在等你" message="登录后查看球局，也可以从好友的邀请进入。" action="登录 / 注册" @action="toLogin" /></view>
     <template v-else>
       <view v-if="errorRendered" :style="errorStyle"><view :style="sectionStyle(2, 'fade')"><BmState kind="error" title="暂时没连上球场" :message="displayedError" action="重新加载" :disabled="!error" :busy="loading" @action="error && load()" /></view></view>
@@ -20,7 +20,7 @@
         </view>
       </view>
     </template>
-    <view :style="sectionStyle(user.token ? 5 : 3, 'fade')"><view class="bm-muted" style="text-align:center;margin-top:40rpx">约好球友 · 尽兴上场</view></view>
+    <view :style="sectionStyle(user.token ? 5 : 3, 'fade')"><view class="bm-muted" style="text-align:center;margin-top:40rpx">{{ BRAND_TAGLINE }}</view></view>
   </view>
 
   </view>
@@ -28,6 +28,8 @@
 <script setup lang="ts">
 import { onUnmounted, ref, watch } from "vue";
 import { onShow, onPullDownRefresh, onShareAppMessage } from "@dcloudio/uni-app";
+import BmBrand from "@/components/badminton/BmBrand.vue";
+import { BRAND_NAME, BRAND_TAGLINE } from "@/config/brand";
 import MatchDetailHost from "@/components/badminton/MatchDetailHost.vue";
 import { provideMatchPresentation } from "@/composables/useMatchPresentation";
 import { api } from "@/api/competition";
@@ -65,7 +67,7 @@ async function load() {
 function create() { if (!user.token) toLogin(); else uni.navigateTo({ url: "/pages/create/index" }); }
 function all() { uni.switchTab({ url: "/pages/schedule/index" }); }
 onShow(() => { void load(); void points.load().catch(() => {}); }); onPullDownRefresh(async () => { try { await Promise.allSettled([load(), points.load()]); } finally { uni.stopPullDownRefresh(); } }); onUnmounted(() => { revision++; });
-onShareAppMessage(() => matchHost.value?.share() || { title: "羽你同场", path: "/pages/index/index" });
+onShareAppMessage(() => matchHost.value?.share() || { title: BRAND_NAME, path: "/pages/index/index" });
 </script>
 
 

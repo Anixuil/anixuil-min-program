@@ -86,6 +86,7 @@
   </view>
 </template>
 <script setup lang="ts">
+import { matchShareTitle } from "@/config/brand";
 import BmField from "@/components/badminton/BmField.vue";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { matchSnapshot } from "@/composables/useMatchPresentation";
@@ -364,7 +365,7 @@ function resume() {
   if (!alreadyLoaded) void reload();
 }
 function suspend() { pageVisible.value = false; clearTimeout(cheerTimer); cheerRevision++; cheerLoading.value = false; invalidateShared(); clearTimeout(noticeTimer); clearTimeout(highlightTimer); notice.value = ""; highlighted.value = ""; uni.hideKeyboard(); }
-function share() { return { title: detail.value?.match.name ? `${detail.value.match.name} · 羽你同场` : "羽你同场", path: inviteToken.value ? `/pages/matchDetails/index?invite=${inviteToken.value}` : "/pages/index/index" }; }
+function share() { return { title: matchShareTitle(detail.value?.match.name), path: inviteToken.value ? `/pages/matchDetails/index?invite=${inviteToken.value}` : "/pages/index/index" }; }
 async function requestBack() {
   if (busy.value) return false;
   if (confirmation.value) { answer(false); return false; }

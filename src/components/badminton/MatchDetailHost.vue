@@ -22,6 +22,7 @@
 <script setup lang="ts">
 import { nextTick, onUnmounted, ref, shallowRef, watch } from "vue";
 import { onHide, onShow, onResize } from "@dcloudio/uni-app";
+import { BRAND_NAME } from "@/config/brand";
 import { openMatch, reducedMotion } from "@/composables/useMotion";
 import { hiddenMatchCard, supportsMatchPresentation, type MatchSnapshot, type MatchSource } from "@/composables/useMatchPresentation";
 import type { CompetitionSummary } from "@/types/competition";
@@ -145,7 +146,7 @@ onHide(() => {
 });
 onShow(() => { visible.value = true; if (match.value) uni.hideTabBar({ animation: false }); });
 onResize(() => { navigation.value = navigationLayout(); content.value?.invalidateShared(); if (phase.value === "opening") { clearTimers(); clearFlight(); phase.value = "open"; } });
-function share() { return content.value?.share() || { title: "羽你同场", path: "/pages/index/index" }; }
+function share() { return content.value?.share() || { title: BRAND_NAME, path: "/pages/index/index" }; }
 onUnmounted(() => { alive = false; generation++; clearTimers(); if (source?.key === hiddenMatchCard.value) hiddenMatchCard.value = ""; if (match.value || opening) showTabBar(); });
 defineExpose({ isOpen: match, open, share });
 </script>

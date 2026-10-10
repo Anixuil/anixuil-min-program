@@ -5,7 +5,7 @@
       // #ifdef MP-WEIXIN
       "navigationStyle": "custom",
       // #endif
-      "navigationBarTitleText": "羽你同场", "enablePullDownRefresh": true
+      "navigationBarTitleText": "一羽成局", "enablePullDownRefresh": true
     } },
     { "path": "pages/schedule/index", "style": {
       // #ifdef MP-WEIXIN

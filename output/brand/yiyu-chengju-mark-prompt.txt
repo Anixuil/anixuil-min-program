@@ -1,0 +1,13 @@
+Tool: built-in image_gen
+Input: output/brand/yiyu-chengju-logo-8b53380e.png
+Final output: src/static/brand/yiyu-chengju-mark.png
+Background: opaque warm off-white
+
+Use case: precise-object-edit.
+Edit target: the approved original “一羽成局” logo image.
+Make a production app icon using ONLY its existing orange emblem, preserving the exact original design and shape.
+Remove the Chinese wordmark at the bottom completely. Keep the emblem unchanged: the three orange feather blades, middle curved band, round lower-left cork, and bottom horizontal court corner with its right upright.
+Place the complete emblem centered in a square icon canvas, with approximately 12% comfortable margin on every side. Preserve its original aspect ratio and all relative positions.
+Background must be one uniform opaque warm off-white #F4F5F2 across the whole canvas. All existing white spaces inside the emblem must match this same opaque #F4F5F2.
+All main emblem shapes must be flat uniform warm orange #E96B35 with smooth crisp clean edges. No transparency. No gradient, texture, paper grain, shadow, halo, border, stray orange pixels, or speckles.
+No text, no new symbols, no additional decoration. This is the same approved logo, just the symbol-only square avatar version.

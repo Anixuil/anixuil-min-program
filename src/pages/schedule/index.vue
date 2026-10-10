@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { nextTick, ref } from "vue";
 import { onShow, onPullDownRefresh, onReachBottom, onShareAppMessage } from "@dcloudio/uni-app";
+import { BRAND_NAME } from "@/config/brand";
 import MatchDetailHost from "@/components/badminton/MatchDetailHost.vue";
 import { provideMatchPresentation } from "@/composables/useMatchPresentation";
 import MatchList from "@/components/badminton/MatchList.vue";
@@ -11,6 +12,6 @@ provideMatchPresentation(() => matchHost.value);
 onReachBottom(() => list.value?.more());
 onShow(async () => { await nextTick(); await list.value?.refresh(); });
 onPullDownRefresh(async () => { try { await list.value?.refresh(); } finally { uni.stopPullDownRefresh(); } });
-onShareAppMessage(() => matchHost.value?.share() || { title: "羽你同场", path: "/pages/index/index" });
+onShareAppMessage(() => matchHost.value?.share() || { title: BRAND_NAME, path: "/pages/index/index" });
 </script>
 

@@ -1,6 +1,6 @@
 <template><view class="bm-page bm-login-page" :class="{ 'is-reduced': reducedMotion }">
   <view :style="pageStyle">
-  <view class="bm-auth-header" :style="sectionStyle(0)"><text class="bm-eyebrow">羽你同场 / BACK ON COURT</text><text class="bm-title">准备好，再上场</text><view class="bm-muted">登录，继续你的球局与战绩。</view></view>
+  <view class="bm-auth-header" :style="sectionStyle(0)"><BmBrand compact /><text class="bm-title">准备好，再上场</text><view class="bm-muted">登录，继续你的球局与战绩。</view></view>
   <view class="bm-card bm-auth-form">
     <!-- #ifdef MP-WEIXIN -->
     <view :style="sectionStyle(1)">
@@ -13,6 +13,7 @@
   </view>
 </view></template>
 <script setup lang="ts">
+import BmBrand from "@/components/badminton/BmBrand.vue";
 import { useReveal } from "@/composables/useReveal";
 import { usePageMotion, usePresence } from "@/composables/useMotionState";
 import BmField from "@/components/badminton/BmField.vue";

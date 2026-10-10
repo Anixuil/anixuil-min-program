@@ -1,8 +1,10 @@
-# 羽你同场
+# 一羽成局
 
-一个基于 Vue 3 + TypeScript + Vite + UnoCSS 的羽毛球小程序，支持球友组局、排赛、计分和战绩记录。约好球友，一起上场。
+一个基于 Vue 3 + TypeScript + Vite + UnoCSS 的羽毛球小程序，支持球友组局、排赛、计分和战绩记录。聚好球友，打好每一场。
 
 开发、数据库升级与部署说明见 [BADMINTON_LOCAL.md](./BADMINTON_LOCAL.md)。
+
+品牌资源：`output/brand/yiyu-chengju-logo-8b53380e.png` 为完整 Logo 原图，`src/static/brand/yiyu-chengju-mark.png` 为页面与 H5 favicon 使用的图形标志。
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Vue](https://img.shields.io/badge/Vue-3.x-brightgreen.svg) ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg) ![Vite](https://img.shields.io/badge/Vite-4.x-646cff.svg) ![uni-app](https://img.shields.io/badge/uni--app-3.x-green.svg) ![UnoCSS](https://img.shields.io/badge/UnoCSS-latest-8D66FE.svg) ![Pinia](https://img.shields.io/badge/Pinia-latest-yellow.svg) ![ESLint](https://img.shields.io/badge/ESLint-9.x-4B32C3.svg) ![Prettier](https://img.shields.io/badge/Prettier-3.x-F7B93E.svg) ![Sass](https://img.shields.io/badge/Sass-latest-CC6699.svg)
 
