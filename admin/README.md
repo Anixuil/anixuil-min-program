@@ -36,7 +36,7 @@
 2. **已有有效 `admin` 角色的邮箱账号可以直接登录**；有效权限含 `*` 或 `admin` 的角色也按现有约定识别为超级权限。普通账号需具有 `bm:admin:enter` 和所需模块权限。已停用、已删除、没有邮箱密码的账号无法通过本后台登录。微信账号可先在小程序「我的 → 邮箱与密码」（头像资料下方）验证邮箱并设置密码，用户 ID、比赛、积分和角色保持不变。
 3. 如果没有任何超级管理员，可由服务器维护者在后端目录明确执行 `pnpm badminton:grant-admin <现有用户ID> --confirm`。该命令给已有邮箱账号关联系统 `admin` 角色（全局超级权限），不会创建默认密码、不会在启动时自动执行。已有管理员时优先从页面分配角色。`BADMINTON_ADMIN_IDS` 已不再参与鉴权；原先仅在该变量中的账号需转为系统角色关联。
 4. 超级管理员登录「角色与授权」：在「系统角色」配置业务权限，在「用户授权」搜索已有账号并勾选角色。支持多角色，取消全部角色可撤销授权。预置 `bm_operator`、`bm_viewer` 分别为运营和只读角色，可作为新角色的配置参考。
-5. 前端根目录执行 `pnpm install:admin`，按需配置 `admin/.env.local` 的 `ADMIN_API_TARGET`；执行 `pnpm dev:admin` 访问 `http://127.0.0.1:5174`。`pnpm build:admin` 输出 `admin/dist`，`pnpm preview:admin` 预览构建产物。
+5. 前端根目录执行 `pnpm install:admin`，然后执行 `pnpm dev:admin` 访问 `http://127.0.0.1:5174`。接口域名共用小程序在项目根目录中的环境配置；如需单独覆盖后管开发代理，可在 `admin/.env.local` 设置 `ADMIN_API_TARGET`。`pnpm build:admin` 输出 `admin/dist`，`pnpm preview:admin` 预览构建产物。
 6. 小程序连接同一后端，在「我的 → 消息中心」查看已发布内容。
 
 旧 `badminton_admin` 表仅保留历史记录，运行时代码不再读取。迁移会把该表中启用的运营/只读授权关联到新建的系统角色，不迁移停用授权，不删除原记录。迁移预留 `bm_operator`、`bm_viewer` 角色编码及名称；如环境已存在同名自定义角色，需由维护者先解决命名冲突，迁移不会静默扩权或覆盖它们。
@@ -62,7 +62,17 @@
 
 ## 生产接入
 
-管理员自行执行 `pnpm build`，将本目录 `dist/` 发布为静态站点；反向代理同源 `/ani-server/` 到后端。使用 HTTPS。部署到子路径时设置 `ADMIN_BASE`，导航使用 hash，不依赖额外的 history 路由重写。开发代理目标不参与生产构建。
+管理员在项目根目录执行 `pnpm build:admin`（或在本目录执行 `pnpm build`），将 `admin/dist/` 发布为 HTTPS 静态站点。后管与小程序共用项目根目录的 `VITE_BADMINTON_ORIGIN`，该值只填写接口域名，不包含 `/ani-server` 前缀。
+
+| 使用方式 | 接口地址来源与行为 |
+| --- | --- |
+| `pnpm dev:admin` | 加载根目录开发环境配置，请求同源 `/ani-server/...`，由 Vite 代理到 `VITE_BADMINTON_ORIGIN`；当前为 `http://127.0.0.1:3000` |
+| `pnpm build:admin` | 默认加载根目录生产环境配置；当前 `.env.production` 配置为 `https://api.anixuil.com`，构建产物直接请求 `https://api.anixuil.com/ani-server/...` |
+| `pnpm preview:admin` | 使用构建时写入的接口地址，默认生产构建仍连接生产后端，不会切回开发代理 |
+
+环境变量遵循 Vite 优先级：命令行环境变量高于 `.env.[mode].local`、`.env.[mode]`、`.env.local`、`.env`。如需更换生产接口，在根目录 `.env.production` 或 `.env.production.local` 修改 `VITE_BADMINTON_ORIGIN`，然后重新打包；小程序也共用此配置。`admin/.env*` 中的 `ADMIN_API_TARGET` 仅覆盖开发代理，`ADMIN_BASE` 控制静态资源路径；部署到子路径时按需设置 `ADMIN_BASE`，导航使用 hash。
+
+后管页面与接口域名不同时，线上后端的 `CORS_ORIGINS` 必须加入后管页面的完整 origin（协议、域名、可选端口，不含路径），保留其他已允许的来源。后端已允许 `Content-Type`、`Authorization` 和 `Idempotency-Key` 请求头。通过本地预览连接生产后端时，也需要允许实际预览来源。以上为源码配置，尚未核验线上跨域白名单或进行接口联调。
 
 ## 权限与数据一致性
 

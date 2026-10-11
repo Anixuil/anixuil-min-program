@@ -1,5 +1,7 @@
 import { ref } from "vue";
 
+// 开发请求经 Vite 代理；构建产物与小程序共用对应环境的接口域名。
+const apiOrigin = import.meta.env.DEV ? "" : String(import.meta.env.VITE_BADMINTON_ORIGIN || "").trim().replace(/\/+$/, "");
 export const token = ref(sessionStorage.getItem("yiyu-admin-session") || "");
 const pending = new Map<string, string>();
 try {
@@ -22,7 +24,7 @@ export async function request<T>(path: string, method = "GET", body?: unknown): 
   }
   const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 25000);
   try {
-    const response = await fetch(`/ani-server${path}`, { method, headers, ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: controller.signal, cache: "no-store" });
+    const response = await fetch(`${apiOrigin}/ani-server${path}`, { method, headers, ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: controller.signal, cache: "no-store" });
     const data = await response.json();
     if (response.status === 401 && session === token.value && !path.startsWith("/auth/")) setToken("");
     if (response.status === 403 && path !== "/admin/me") window.dispatchEvent(new Event("admin-permissions-changed"));
