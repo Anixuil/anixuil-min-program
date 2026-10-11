@@ -2,6 +2,10 @@
   "name": "uni-preset-vue",
   "version": "0.0.0",
   "scripts": {
+    "dev:admin": "pnpm --dir admin run dev",
+    "build:admin": "pnpm --dir admin run build",
+    "preview:admin": "pnpm --dir admin run preview",
+    "install:admin": "pnpm --dir admin install",
     "dev:custom": "uni -p",
     "dev:h5": "uni",
     "dev:h5:ssr": "uni --ssr",

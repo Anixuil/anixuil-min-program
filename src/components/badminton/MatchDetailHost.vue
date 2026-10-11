@@ -23,6 +23,7 @@
 import { nextTick, onUnmounted, ref, shallowRef, watch } from "vue";
 import { onHide, onShow, onResize } from "@dcloudio/uni-app";
 import { BRAND_NAME } from "@/config/brand";
+import { setResultShareMenu } from "@/utils/resultShare";
 import { openMatch, reducedMotion } from "@/composables/useMotion";
 import { hiddenMatchCard, supportsMatchPresentation, type MatchSnapshot, type MatchSource } from "@/composables/useMatchPresentation";
 import type { CompetitionSummary } from "@/types/competition";
@@ -67,6 +68,7 @@ async function open(value: CompetitionSummary, origin: MatchSource) {
   if (!alive || ticket !== generation || !visible.value) { opening = false; return; }
   source = origin;
   phase.value = "preparing";
+  setResultShareMenu(false);
   flightMatch.value = { ...value };
   match.value = { ...value };
   guard.value = true;
@@ -97,7 +99,7 @@ function closeImmediately() {
   hiddenMatchCard.value = "";
   match.value = flightMatch.value = null;
   source = null; sourceRect = restingHeader = null; opening = requestingBack = false;
-  void nextTick(() => { if (alive) emit("closed"); });
+  void nextTick(() => { if (alive) { if (visible.value) setResultShareMenu(true); emit("closed"); } });
 }
 async function back() {
   if (!match.value || requestingBack || phase.value === "closing") return;
@@ -139,7 +141,7 @@ onHide(() => {
   if (phase.value === "closing") closeImmediately();
   else if (match.value) phase.value = "open";
 });
-onShow(() => { visible.value = true; });
+onShow(() => { visible.value = true; if (!match.value) setResultShareMenu(true); });
 onResize(() => { navigation.value = navigationLayout(); content.value?.invalidateShared(); if (phase.value === "opening") { clearTimers(); clearFlight(); phase.value = "open"; } });
 function share() { return content.value?.share() || { title: BRAND_NAME, path: "/pages/index/index" }; }
 onUnmounted(() => { alive = false; generation++; clearTimers(); if (source?.key === hiddenMatchCard.value) hiddenMatchCard.value = ""; });

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 520" fill="none">
+  <defs>
+    <linearGradient id="feather" x1="-22" y1="0" x2="25" y2="30" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#dcd8c8"/>
+      <stop offset=".46" stop-color="#fffdf5"/>
+      <stop offset="1" stop-color="#efecdf"/>
+    </linearGradient>
+    <linearGradient id="cork" x1="-38" y1="90" x2="40" y2="124" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d9ccb2"/>
+      <stop offset=".4" stop-color="#f6ebd1"/>
+      <stop offset="1" stop-color="#e8dac0"/>
+    </linearGradient>
+    <radialGradient id="shadow">
+      <stop stop-color="#294334" stop-opacity=".15"/>
+      <stop offset="1" stop-color="#294334" stop-opacity="0"/>
+    </radialGradient>
+    <g id="vane">
+      <path d="M0 80C-9 12-31-68-26-140C-23-182-6-207 4-198C29-175 31-121 23-70C17-22 8 31 0 80Z" fill="url(#feather)" stroke="#ddd8c7" stroke-width=".8"/>
+      <path d="M0 106C0 13 1-84 4-189" stroke="#d6cdb7" stroke-width="2.1" stroke-linecap="round"/>
+      <path d="m2-153-24-18m24 35-27-20m26 38-26-20m26 38-25-21m25 38-23-20m23 38-20-19m20 36-17-18m17 34-14-17m14 32-11-15M3-154l18-18m-18 36 23-21m-24 38 25-23m-25 40 24-24m-25 42 23-24m-23 42 19-24M1-29l16-24M1-11l13-25M0 7l10-23" stroke="#c4bca7" stroke-opacity=".4" stroke-width=".8"/>
+    </g>
+  </defs>
+  <ellipse cx="311" cy="440" rx="149" ry="29" fill="url(#shadow)"/>
+  <g transform="translate(295 290) rotate(23)">
+    <g opacity=".78">
+      <use href="#vane" transform="translate(-13) rotate(-29) scale(.67 .94)"/>
+      <use href="#vane" transform="translate(-10) rotate(-23) scale(.76 .96)"/>
+      <use href="#vane" transform="translate(-7) rotate(-16) scale(.84 .98)"/>
+      <use href="#vane" transform="translate(-3) rotate(-8) scale(.89 1)"/>
+      <use href="#vane" transform="translate(3) rotate(1) scale(.9 1)"/>
+      <use href="#vane" transform="translate(7) rotate(10) scale(.83 .98)"/>
+      <use href="#vane" transform="translate(10) rotate(20) scale(.76 .96)"/>
+      <use href="#vane" transform="translate(13) rotate(29) scale(.67 .94)"/>
+    </g>
+    <use href="#vane" transform="translate(-11) rotate(-30) scale(.7 .92)"/>
+    <use href="#vane" transform="translate(11) rotate(30) scale(.7 .92)"/>
+    <use href="#vane" transform="translate(-9) rotate(-23) scale(.8 .92)"/>
+    <use href="#vane" transform="translate(9) rotate(23) scale(.8 .92)"/>
+    <use href="#vane" transform="translate(-6) rotate(-15) scale(.85 .92)"/>
+    <use href="#vane" transform="translate(6) rotate(15) scale(.85 .92)"/>
+    <use href="#vane" transform="translate(-2) rotate(-5) scale(.9 .92)"/>
+    <use href="#vane" transform="translate(2) rotate(5) scale(.9 .92)"/>
+    <path d="M-55 9Q0 28 55 9M-45 42Q0 58 45 42" stroke="#d8cdb6" stroke-width="4"/>
+    <path d="M-35 80H35L34 129C33 153 15 169 0 169C-16 169-34 153-35 129Z" fill="url(#cork)" stroke="#d9ccb1" stroke-width="1"/>
+    <path d="M-35 83Q0 91 35 83V99Q0 107-35 99Z" fill="#d57843"/>
+    <path d="M-36 78Q0 86 36 78M-36 73Q0 81 36 73" stroke="#e6ddc7" stroke-width="4"/>
+    <path d="M-22 112v14m7-10v22m9-20v24" stroke="#cab99a" stroke-opacity=".26" stroke-linecap="round"/>
+  </g>
+</svg>

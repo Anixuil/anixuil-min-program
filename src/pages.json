@@ -14,9 +14,12 @@
       "navigationBarTitleText": "我的球局", "enablePullDownRefresh": true
     } },
     { "path": "pages/profile/index", "style": { "navigationBarTitleText": "我的羽球" } },
+    { "path": "pages/profile/email", "style": { "navigationBarTitleText": "邮箱与密码" } },
     { "path": "pages/points/index", "style": { "navigationBarTitleText": "积分中心", "enablePullDownRefresh": true } },
+    { "path": "pages/messages/index", "style": { "navigationBarTitleText": "消息中心", "enablePullDownRefresh": true } },
     { "path": "pages/create/index", "style": { "navigationBarTitleText": "发起球局" } },
     { "path": "pages/matchDetails/index", "style": { "navigationBarTitleText": "球局详情", "enablePullDownRefresh": true } },
+    { "path": "pages/matchResults/index", "style": { "navigationBarTitleText": "球局战绩", "enablePullDownRefresh": true } },
     { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } },
     { "path": "pages/register/index", "style": { "navigationBarTitleText": "注册" } },
     { "path": "pages/scheduleDetails/index", "style": { "navigationBarTitleText": "球局详情" } },
@@ -34,3 +37,5 @@
     ]
   }
 }
+
+

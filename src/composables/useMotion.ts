@@ -2,7 +2,6 @@ import { computed, getCurrentInstance, nextTick, onMounted, onUnmounted, ref, wa
 import { onHide } from "@dcloudio/uni-app";
 import type { CompetitionSummary } from "@/types/competition";
 
-const preference = ref(Boolean(uni.getStorageSync("bm:reduced-motion")));
 const systemReduced = ref(false);
 // #ifdef H5
 if (typeof window !== "undefined" && window.matchMedia) {
@@ -11,10 +10,9 @@ if (typeof window !== "undefined" && window.matchMedia) {
   media.addEventListener?.("change", event => { systemReduced.value = event.matches; });
 }
 // #endif
-// Platform support and the user's motion preference are separate concerns.
-export const reducedMotion = computed(() => preference.value || systemReduced.value);
-export function setReducedMotion(value: boolean) { preference.value = value; uni.setStorageSync("bm:reduced-motion", value); }
-export function useMotion() { return { reducedMotion, preference, setReducedMotion }; }
+// No app-level motion switch or persisted override. Honor the H5 system preference.
+export const reducedMotion = computed(() => systemReduced.value);
+export function useMotion() { return { reducedMotion }; }
 export function useKeyboard() {
   const keyboardHeight = ref(0);
   const update = (event: { height: number }) => { keyboardHeight.value = event.height; };

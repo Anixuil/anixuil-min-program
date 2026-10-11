@@ -1,3 +1,8 @@
+export function isPublicResultPage(path?: string): boolean {
+  if (path !== undefined) return path.replace(/^\//, "").split("?")[0] === "pages/matchResults/index";
+  const pages = getCurrentPages();
+  return pages.length > 0 && isPublicResultPage(pages[pages.length - 1].route || "");
+}
 export function rememberReturn() {
   const pages = getCurrentPages();
   const page = pages[pages.length - 1] as any;

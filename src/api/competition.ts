@@ -1,5 +1,5 @@
 import request from "@/utils/request";
-import type { Account, CompetitionSummary, Detail, MatchInput, Page, PersonalStats, Preview } from "@/types/competition";
+import type { Account, CompetitionSummary, Detail, MatchInput, Page, PersonalStats, Preview, PublicMatchResult, ResultShareLink } from "@/types/competition";
 
 // Keep the same key when retrying an uncertain write. Different payloads get a new key.
 const pending = new Map<string, string>();
@@ -56,11 +56,13 @@ export const api = {
   pairs: (id: string, pairs: string[][], version: number) => write(`/matches/${id}/pairs`, { pairs, version }, "PUT"),
   claim: (id: string, playerId: string, release = false) => write(`/matches/${id}/players/${playerId}/${release ? "release" : "claim"}`),
   invite: (id: string) => write<{ matchId: string; token: string }>(`/matches/${id}/invitation`),
+  resultShare: (id: string) => write<ResultShareLink>(`/matches/${id}/result-share`),
+  sharedResults: (token: string) => request<PublicMatchResult>({ url: `/result-shares/${encodeURIComponent(token)}`, method: "GET", public: true }),
   redeem: (token: string) => write<{ id: string }>("/invitations/redeem", { token }),
   preview: (id: string) => request<Preview>({ url: `/matches/${id}/schedule-preview`, method: "GET" }),
   generate: (id: string, version: number) => write(`/matches/${id}/schedule`, { version }),
   action: (id: string, action: string, version: number, reason?: string) => write(`/matches/${id}/actions/${action}`, { version, ...(reason ? { reason } : {}) }),
   score: (id: string, gameId: string, data: { version: number; scoreA: number; scoreB: number; reason: string }) => write(`/matches/${id}/games/${gameId}/score`, data, "PUT"),
   cancelGame: (id: string, gameId: string, version: number, reason: string) => write(`/matches/${id}/games/${gameId}/cancel`, { version, reason }),
-  audits: (id: string) => request<Array<{ id: string; action: string; actorId: string; detail: any; createdAt: string }>>({ url: `/matches/${id}/audits`, method: "GET" }),
+  audits: (id: string) => request<Array<{ id: string; action: string; actorId: string; actorName: string; detail: any; createdAt: string }>>({ url: `/matches/${id}/audits`, method: "GET" }),
 };

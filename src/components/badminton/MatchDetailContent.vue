@@ -58,7 +58,15 @@
     <view v-if="detail" class="bm-dock" :style="dockStyle" :aria-hidden="backgroundBlocked" :inert="backgroundBlocked ? true : undefined"><view class="bm-dock-inner" :style="sectionStyle(4, 'fade')"><button v-if="owner" class="bm-icon-button bm-more-button" :disabled="locked || backgroundBlocked" aria-label="更多操作" @click="openPanel('more')" :hover-class="locked || backgroundBlocked ? 'none' : 'bm-touch'" :hover-stay-time="80"><view class="bm-more-icon" aria-hidden="true"><view class="bm-more-dot" /><view class="bm-more-dot" /><view class="bm-more-dot" /></view></button><view class="bm-dock-main"><BmButton :loading="busy && !claimingPlayerId && !releaseOperation" :disabled="locked || backgroundBlocked" @click="primaryAction">{{ primaryLabel }}</BmButton></view></view></view>
     <BmSheet :model-value="panelOpen" :title="panelTitle" :content-key="displayedPanel" :resize-key="panelResizeKey" :busy="busy" :covered="!!confirmation" @close="closePanel" @closed="panelClosed">
       <view :style="panelContainerStyle"><view id="detail-panel-content" :style="panelStyle" :aria-hidden="!panelInteractive || !panelOpen">
-      <template v-if="displayedPanel === 'more'"><button v-if="detail?.match.status === 'draft'" class="bm-option" :disabled="panelLocked" @click="openPanel('edit')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">修改球局配置 →</button><button v-if="canInvite" class="bm-option" :disabled="panelLocked" @click="openPanel('invite')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">邀请球友 →</button><button v-if="detail?.match.status === 'scheduled'" class="bm-option" :disabled="panelLocked" @click="transition('clear')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">清除排赛，重新安排</button><button v-if="canInvite" class="bm-option" :disabled="panelLocked" @click="openReason('match')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">取消球局</button><button v-if="detail && ['draft', 'scheduled'].includes(detail.match.status)" class="bm-option" :disabled="panelLocked" @click="transition('delete')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">删除球局</button></template>
+      <template v-if="displayedPanel === 'more'">
+        <button v-if="canShareResults" class="bm-option" :disabled="panelLocked" @click="openPanel('resultShare')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">分享战绩 →</button>
+        <button v-if="detail?.match.status === 'draft'" class="bm-option" :disabled="panelLocked" @click="openPanel('edit')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">修改球局配置 →</button>
+        <button v-if="canInvite" class="bm-option" :disabled="panelLocked" @click="openPanel('invite')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">邀请球友 →</button>
+        <button v-if="detail?.match.status === 'scheduled'" class="bm-option" :disabled="panelLocked" @click="transition('clear')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">清除排赛，重新安排</button>
+        <button v-if="canInvite" class="bm-option" :disabled="panelLocked" @click="openReason('match')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">取消球局</button>
+        <button v-if="detail && ['draft', 'scheduled'].includes(detail.match.status)" class="bm-option" :disabled="panelLocked" @click="transition('delete')" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">删除球局</button>
+        <button v-if="owner" class="bm-option" :disabled="panelLocked" @click="loadAudits" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">查看操作记录 →</button>
+      </template>
       <template v-if="displayedPanel === 'player'"><view class="bm-heading">{{ selectedPlayer?.name }}</view><view class="bm-muted">编号 {{ (selectedPlayer?.position ?? 0) + 1 }}</view><button v-if="selectedPlayer?.userId" class="bm-option" :disabled="panelLocked" @click="claim(selectedPlayer.id, true)" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">解除账号认领</button><button v-if="detail?.match.status === 'draft' && selectedPlayer" class="bm-option" :disabled="panelLocked" @click="removePlayer(selectedPlayer.id)" :hover-class="panelLocked ? 'none' : 'bm-touch'" :hover-stay-time="80">移出名单</button></template>
       <template v-if="displayedPanel === 'invite'"><view class="bm-muted">分享给球友，登录后即可认领名单。</view>
         <BmButton v-if="!inviteToken && !inviteError" :loading="inviteLoading" disabled>正在准备分享…</BmButton>
@@ -71,11 +79,28 @@
         <BmButton variant="dark" :disabled="panelLocked || !inviteToken" @click="copyInvite">复制邀请链接</BmButton>
         <!-- #endif -->
       </view></template>
+      <template v-if="displayedPanel === 'resultShare'">
+        <view class="bm-heading">{{ detail?.match.name }}</view>
+        <view class="bm-muted">好友打开即可查看排名和每局比分，无需登录，也可以继续转发。</view>
+        <view class="bm-section">
+          <BmButton v-if="!resultShareToken && !resultShareError" :loading="resultShareLoading" disabled>正在准备战绩分享…</BmButton>
+          <BmState v-if="resultShareError && !resultShareToken" kind="error" title="暂时无法分享战绩" :message="resultShareError" action="重试" :busy="resultShareLoading" :disabled="panelLocked || resultShareLoading" @action="prepareResultShare" />
+          <view v-if="resultShareRendered" :style="resultShareStyle" :aria-hidden="!resultShareReady">
+            <!-- #ifdef MP-WEIXIN -->
+            <button class="bm-button dark" open-type="share" :disabled="panelLocked || !resultShareReady" :hover-class="panelLocked || !resultShareReady ? 'none' : 'bm-pressed'" :hover-stay-time="80">分享给微信好友 / 群</button>
+            <!-- #endif -->
+            <!-- #ifdef H5 -->
+            <BmButton variant="dark" :loading="resultShareCopying" :disabled="panelLocked || !resultShareReady || resultShareCopying" @click="copyResults">复制战绩链接</BmButton>
+            <!-- #endif -->
+            <view v-if="resultShareError" class="bm-error">{{ resultShareError }}</view>
+          </view>
+        </view>
+      </template>
       <MatchForm v-if="displayedPanel === 'edit' && detail" :key="editKey" :initial="detail.match" :busy="panelLocked" @dirty="panelDirty = $event" @submit="saveConfig" />
       <PairEditor v-if="displayedPanel === 'pairs' && detail" :key="editKey" :players="detail.players" :busy="panelLocked" @dirty="panelDirty = $event" @save="savePairs" />
       <template v-if="displayedPanel === 'preview' && preview"><text class="bm-heading">{{ preview.games.length }} 局 · {{ preview.rounds.length }} 轮</text><view class="bm-muted">确认保存后可以开始球局。</view><view class="bm-row bm-section"><text v-for="person in preview.appearances" :key="person.playerId" class="bm-tag">{{ person.name }} · {{ person.count }} 局</text></view><view v-for="round in previewRounds" :key="round.number" class="bm-divider"><text class="bm-heading">第 {{ round.number }} 轮</text><view v-for="game in round.games" :key="game.sequence" class="bm-muted">{{ game.court }} 号场：{{ teamName(game.teamA) }} vs {{ teamName(game.teamB) }}</view><view class="bm-muted">轮休：{{ teamName(round.resting) || '无' }}</view></view><view class="bm-section"><BmButton :loading="busy" :disabled="panelLocked" @click="generate">确认，保存排赛</BmButton></view></template>
       <template v-if="displayedPanel === 'reason'"><view class="bm-muted">已完成的比分与积分结算保留，未完成对局的助威投入将退回，取消对局不计战绩。</view><text class="bm-label">取消原因</text><BmField multiline v-model="cancelReason" label="取消原因" maxlength="500" :disabled="panelLocked" placeholder="向球友说明原因" /><view class="bm-section"><BmButton variant="danger" :loading="busy" :disabled="panelLocked || !cancelReason.trim()" @click="cancelTarget">确认取消</BmButton></view></template>
-      <template v-if="displayedPanel === 'audits'"><view v-if="!audits.length" class="bm-muted">暂无操作记录</view><view v-for="audit in audits" :key="audit.id" class="bm-divider"><text class="bm-heading">{{ auditLabel(audit.action) }}</text><view class="bm-muted">{{ dateLabel(audit.createdAt) }}</view><view v-if="audit.detail?.before" class="bm-muted">{{ audit.detail.before.scoreA ?? '—' }} : {{ audit.detail.before.scoreB ?? '—' }} → {{ audit.detail.after.scoreA ?? '—' }} : {{ audit.detail.after.scoreB ?? '—' }}</view><view v-if="audit.detail?.reason" class="bm-muted">{{ audit.detail.reason }}</view><view class="bm-muted">操作人：{{ audit.actorId }}</view></view></template>
+      <template v-if="displayedPanel === 'audits'"><view v-if="!audits.length" class="bm-muted">暂无操作记录</view><view v-for="audit in audits" :key="audit.id" class="bm-divider"><text class="bm-heading">{{ auditLabel(audit.action) }}</text><view class="bm-muted">{{ dateLabel(audit.createdAt) }}</view><view v-if="audit.detail?.before" class="bm-muted">{{ audit.detail.before.scoreA ?? '—' }} : {{ audit.detail.before.scoreB ?? '—' }} → {{ audit.detail.after.scoreA ?? '—' }} : {{ audit.detail.after.scoreB ?? '—' }}</view><view v-if="audit.detail?.reason" class="bm-muted">{{ audit.detail.reason }}</view><view class="bm-muted">操作人：{{ audit.actorName || '未知用户' }}</view></view></template>
       <view v-if="errorRendered" class="bm-error" :style="errorStyle">{{ displayedError }}<BmButton v-if="needsRefresh" small variant="secondary" :disabled="busy || loading || !error" @click="recover">刷新数据，重新操作</BmButton></view>
       </view></view>
     </BmSheet>
@@ -100,6 +125,7 @@ import CheerCard from "@/components/badminton/CheerCard.vue";
 import CheerSheet from "@/components/badminton/CheerSheet.vue";
 import { useUserStore } from "@/store/modules/user";
 import { dateLabel, modeLabels, statusLabels, toLogin } from "@/utils/navigation";
+import { copyResultShare, resultSharePayload, setResultShareMenu } from "@/utils/resultShare";
 import { reducedMotion, sharedMatch, useLayoutMotion, type MotionRect } from "@/composables/useMotion";
 import { useSharedElement } from "@/composables/useSharedElement";
 import { useSheetBackground } from "@/composables/useSheetBackground";
@@ -118,6 +144,8 @@ const matchId = ref(props.id), token = ref(props.invite || ""), inviteToken = re
 const claimingPlayerId = ref("");
 const inviteLoading = ref(false), inviteError = ref("");
 let inviteRevision = 0;
+const resultShareToken = ref(""), resultShareLoading = ref(false), resultShareError = ref(""), resultShareCopying = ref(false);
+let resultShareRevision = 0;
 const releaseOperation = ref(0);
 let releaseSequence = 0, releaseLoadingVisible = false, mutationSequence = 0, pageAlive = true;
 const panel = ref(""), panelOpen = ref(false), panelDirty = ref(false), editKey = ref(0), selectedPlayerId = ref(""), reasonTarget = ref(""), cancelReason = ref(""), audits = ref<Awaited<ReturnType<typeof api.audits>>>([]);
@@ -146,6 +174,8 @@ const { backgroundStyle, dockStyle, backgroundBlocked, geometryStable } = useShe
 watch(confirmation, value => { if (value && scoreOpen.value) invalidateShared(); });
 let noticeTimer: ReturnType<typeof setTimeout> | undefined, highlightTimer: ReturnType<typeof setTimeout> | undefined;
 const owner = computed(() => !!detail.value?.permissions.manage), locked = computed(() => busy.value || releaseOperation.value !== 0 || loading.value || needsRefresh.value || cheerOpen.value || cheerBusy.value), canInvite = computed(() => !!detail.value && !["finished", "cancelled"].includes(detail.value.match.status));
+const canShareResults = computed(() => detail.value?.match.status === "finished" && !!detail.value.permissions.shareResults);
+const resultShareReady = computed(() => canShareResults.value && !!resultShareToken.value && !loading.value && !needsRefresh.value);
 const { loadingRendered, loadingStyle, contentStyle, containerStyle: loadingContainerStyle } = useLoadingMotion(() => loading.value && !detail.value, () => !!detail.value, { get selector() { return geometryStable.value ? ".bm-detail-loading" : undefined; } });
 const tabMotion = useSwitchMotion(() => tab.value, { order: () => ["info", "games", "results"], selector: "#detail-tab-content" });
 const { displayed: displayedTab, style: tabStyle, containerStyle: tabContainerStyle, interactive: tabInteractive } = tabMotion;
@@ -159,7 +189,8 @@ const { rendered: noticeRendered, displayed: displayedNotice, style: noticeStyle
 const { rendered: errorRendered, displayed: displayedError, style: errorStyle } = usePresence(() => error.value, { immediate: () => !detail.value });
 const { rendered: openingErrorRendered, displayed: displayedOpeningError, style: openingErrorStyle } = usePresence(() => !detail.value ? error.value : "", { immediate: () => !user.token });
 const { rendered: inviteRendered, style: inviteStyle } = usePresence(() => !!inviteToken.value, { immediate: () => !detail.value });
-const panelResizeKey = computed(() => JSON.stringify([panelMotion.phase.value, inviteLoading.value, inviteError.value, inviteRendered.value]));
+const { rendered: resultShareRendered, style: resultShareStyle } = usePresence(() => !!resultShareToken.value, { immediate: () => !detail.value });
+const panelResizeKey = computed(() => JSON.stringify([panelMotion.phase.value, inviteLoading.value, inviteError.value, inviteRendered.value, resultShareLoading.value, resultShareError.value, resultShareRendered.value]));
 const canAddPlayer = computed(() => owner.value && detail.value?.match.status === "draft");
 const { rendered: addPlayerRendered, style: addPlayerStyle } = usePresence(() => canAddPlayer.value, { immediate: () => !owner.value });
 const resetMotionKey = () => `${user.token}:${matchId.value}`;
@@ -180,12 +211,17 @@ const headerTransition = computed(() => {
 });
 const myPlayer = computed(() => detail.value?.players.find(p => p.userId === user.userInfo?.id)), selectedPlayer = computed(() => detail.value?.players.find(p => p.id === selectedPlayerId.value));
 const tabs = [{ value: "info", label: "名单" }, { value: "games", label: "对局" }, { value: "results", label: "战绩" }], gameFilters = [{ value: "all", label: "全部" }, { value: "pending", label: "待录分" }, { value: "completed", label: "已完成" }, { value: "mine", label: "我的" }];
-const panelTitle = computed(() => (({ more: "组织球局", player: "球友管理", invite: "邀请球友", edit: "修改配置", pairs: "选择固定搭档", preview: "看看怎么打", reason: "取消说明", audits: "操作记录" } as Record<string, string>)[displayedPanel.value] || "球局"));
+const panelTitle = computed(() => (({ more: canInvite.value ? "组织球局" : "球局操作", player: "球友管理", invite: "邀请球友", resultShare: "分享战绩", edit: "修改配置", pairs: "选择固定搭档", preview: "看看怎么打", reason: "取消说明", audits: "操作记录" } as Record<string, string>)[displayedPanel.value] || "球局"));
 const completedCount = computed(() => detail.value?.games.filter(g => g.status === "completed").length || 0), pendingCount = computed(() => detail.value?.games.filter(g => g.status === "pending").length || 0);
 const statSections = computed(() => detail.value ? [{ key: "personal", title: "个人排名", rows: personalMotion.rows.value }, ...(detail.value.match.mode === "fixed" ? [{ key: "team", title: "固定搭档排名", rows: teamMotion.rows.value }] : [])] : []);
 const previewRounds = computed(() => preview.value?.rounds.map(round => ({ ...round, games: preview.value!.games.filter(g => g.round === round.number) })) || []);
 const rounds = computed(() => { const d = detail.value; if (!d) return []; return [...new Set(d.games.map(g => g.round))].map(number => { const all = d.games.filter(g => g.round === number), ids = all.flatMap(g => [...g.teamA, ...g.teamB]); const games = all.filter(g => displayedFilter.value === "all" || (displayedFilter.value === "mine" ? !!myPlayer.value && [...g.teamA, ...g.teamB].includes(myPlayer.value.id) : g.status === displayedFilter.value)); return { number, games, resting: d.players.filter(p => !ids.includes(p.id)).map(p => p.id) }; }).filter(round => round.games.length); });
-const primaryLabel = computed(() => { const status = detail.value?.match.status; if (owner.value && status === "draft") return "预览排赛 →"; if (owner.value && status === "scheduled") return "准备好了，开始球局"; if (owner.value && status === "active" && !pendingCount.value) return "结束球局，查看战绩"; if (status === "active" && detail.value?.permissions.recordGameIds.length) return "录入一场比分"; if (status === "finished" || status === "cancelled") return "查看本场战绩"; return "查看对局安排"; });
+const primaryLabel = computed(() => { const status = detail.value?.match.status; if (owner.value && status === "draft") return "预览排赛 →"; if (owner.value && status === "scheduled") return "准备好了，开始球局"; if (owner.value && status === "active" && !pendingCount.value) return "结束球局，查看战绩"; if (status === "active" && detail.value?.permissions.recordGameIds.length) return "录入一场比分"; if (canShareResults.value) return "分享战绩"; if (status === "finished" || status === "cancelled") return "查看本场战绩"; return "查看对局安排"; });
+function syncShareMenu() {
+  if (!pageAlive || !pageVisible.value || !props.active) return;
+  setResultShareMenu(!!detail.value && (detail.value.match.status === "finished" ? resultShareReady.value : canInvite.value));
+}
+watch([pageVisible, () => props.active, () => detail.value, resultShareReady], syncShareMenu);
 function teamName(ids: string[]) { return ids.map(id => detail.value?.players.find(p => p.id === id)?.name || "未知选手").join(" / "); }
 function partnerName(id: string) { const player = detail.value?.players.find(p => p.id === id); return detail.value?.players.find(p => p.id !== id && p.pairKey === player?.pairKey)?.name || "待配对"; }
 function canScore(game: Game) { return !!detail.value?.permissions.recordGameIds.includes(game.id) || (owner.value && game.status === "completed"); }
@@ -219,7 +255,7 @@ watch(cheersVisible, visible => {
 function feedback(message: string) { clearTimeout(noticeTimer); notice.value = message; noticeTimer = setTimeout(() => { notice.value = ""; }, 1800); }
 function changeTab(value: string) { if (releaseOperation.value || backgroundBlocked.value) return; invalidateShared(); uni.hideKeyboard(); tab.value = value; }
 function setGameFilter(value: string) { if (releaseOperation.value || backgroundBlocked.value) return; invalidateShared(); gameFilter.value = value; }
-function openPanel(value: string) { if (locked.value) return; uni.hideKeyboard(); panel.value = value; if (!panelOpen.value) panelMotion.cancel(); panelOpen.value = true; panelDirty.value = false; error.value = ""; if (value === "invite") void prepareInvite(); }
+function openPanel(value: string) { if (locked.value || (value === "resultShare" && !canShareResults.value)) return; uni.hideKeyboard(); panel.value = value; if (!panelOpen.value) panelMotion.cancel(); panelOpen.value = true; panelDirty.value = false; error.value = ""; if (value === "invite") void prepareInvite(); if (value === "resultShare") void prepareResultShare(); }
 async function closePanel() { if (busy.value) return; if ((panelDirty.value || (panel.value === "reason" && cancelReason.value.trim())) && !await ask("放弃本次尚未保存的修改？")) return; panelOpen.value = false; panelDirty.value = false; }
 function panelClosed() { if (!panelOpen.value) { panel.value = ""; panelMotion.cancel(); } }
 watch(displayedPanel, () => { editKey.value++; });
@@ -227,6 +263,7 @@ watch(panelOpen, open => { if (!open) { uni.hideKeyboard(); panelMotion.cancel()
 function clearPrivatePresentation() {
   presentationRevision++;
   inviteRevision++; inviteLoading.value = false; inviteError.value = "";
+  resultShareRevision++; resultShareLoading.value = false; resultShareCopying.value = false; resultShareError.value = ""; resultShareToken.value = "";
   cheerRevision++; clearTimeout(cheerTimer); cheerLoading.value = false; cheerMarkets.value = {}; cheerError.value = ""; cheerOpen.value = false; cheerBusy.value = false; cheerGameId.value = "";
   panelOpen.value = false; panelDirty.value = false; panel.value = ""; preview.value = null; audits.value = []; inviteToken.value = "";
   scoreOpen.value = false; scoreGame.value = null; selectedPlayerId.value = ""; playerName.value = ""; cancelReason.value = "";
@@ -249,7 +286,7 @@ async function load() {
     const previousDetail = detail.value, previousPermissions = previousDetail?.permissions;
     detail.value = result;
     const scoringRevoked = previousPermissions?.recordGameIds.some(id => !result.permissions.recordGameIds.includes(id) && previousDetail?.games.find(game => game.id === id)?.status === result.games.find(game => game.id === id)?.status);
-    if (previousPermissions && ((previousPermissions.manage && !result.permissions.manage) || (previousPermissions.claim && !result.permissions.claim) || scoringRevoked)) clearPrivatePresentation();
+    if (previousPermissions && ((previousPermissions.manage && !result.permissions.manage) || (previousPermissions.claim && !result.permissions.claim) || (previousPermissions.shareResults && !result.permissions.shareResults) || scoringRevoked)) clearPrivatePresentation();
     needsRefresh.value = false;
     if (pageVisible.value && (tab.value === "games" || cheerOpen.value)) void refreshCheers();
   } finally { if (current === revision) loading.value = false; }
@@ -325,7 +362,34 @@ function copyInvite() {
   const root = window.location.href.split("#")[0]; uni.setClipboardData({ data: `${root}#/pages/matchDetails/index?invite=${inviteToken.value}`, fail: () => { error.value = "复制失败，请重试"; } });
   // #endif
 }
-async function primaryAction() { if (locked.value || !detail.value) return; const status = detail.value.match.status; if (owner.value && status === "draft") return previewSchedule(); if (owner.value && status === "scheduled") return transition("start"); if (owner.value && status === "active" && !pendingCount.value) return transition("finish"); if (["finished", "cancelled"].includes(status)) { changeTab("results"); return; } changeTab("games"); gameFilter.value = "all"; const game = detail.value.games.find(g => detail.value!.permissions.recordGameIds.includes(g.id)); if (game) { tabMotion.cancel(); filterMotion.cancel(); await nextTick(); openScore(game); } }
+async function prepareResultShare() {
+  if (!pageAlive || !pageVisible.value || locked.value || !canShareResults.value || resultShareToken.value || resultShareLoading.value) return;
+  const ticket = ++resultShareRevision, session = user.token, id = matchId.value;
+  const current = () => pageAlive && ticket === resultShareRevision && session === user.token && id === matchId.value && canShareResults.value;
+  resultShareLoading.value = true; resultShareError.value = "";
+  try {
+    const result = await api.resultShare(id);
+    if (!current()) return;
+    if (result.matchId !== id || !/^[a-f0-9]{48}$/.test(result.token)) throw new Error("战绩分享准备失败，请重试");
+    resultShareToken.value = result.token;
+  } catch (cause: unknown) {
+    if (!current()) return;
+    const failure = cause as { code?: number; message?: string };
+    resultShareError.value = failure.message || "战绩分享暂不可用，请稍后重试";
+    if (failure.code === 401 || failure.code === 403 || failure.code === 404) {
+      error.value = resultShareError.value; detail.value = null; sharedMatch.value = null; clearPrivatePresentation();
+    }
+  } finally { if (current()) resultShareLoading.value = false; }
+}
+async function copyResults() {
+  if (panelLocked.value || !resultShareReady.value || resultShareCopying.value) return;
+  const ticket = resultShareRevision;
+  resultShareCopying.value = true; resultShareError.value = "";
+  try { await copyResultShare(resultShareToken.value); }
+  catch { if (pageAlive && ticket === resultShareRevision) resultShareError.value = "复制失败，请重试"; }
+  finally { if (pageAlive && ticket === resultShareRevision) resultShareCopying.value = false; }
+}
+async function primaryAction() { if (locked.value || !detail.value) return; const status = detail.value.match.status; if (owner.value && status === "draft") return previewSchedule(); if (owner.value && status === "scheduled") return transition("start"); if (owner.value && status === "active" && !pendingCount.value) return transition("finish"); if (["finished", "cancelled"].includes(status)) { changeTab("results"); if (canShareResults.value) openPanel("resultShare"); return; } changeTab("games"); gameFilter.value = "all"; const game = detail.value.games.find(g => detail.value!.permissions.recordGameIds.includes(g.id)); if (game) { tabMotion.cancel(); filterMotion.cancel(); await nextTick(); openScore(game); } }
 const scoreAttempted = ref(false);
 function invalidScore(value: string, other: string) { return !/^\d+$/.test(value) || Number(value) > 999 || (other.trim() !== "" && Number(value) === Number(other)); }
 function scoreValues() { return JSON.stringify([scoreA.value, scoreB.value, scoreReason.value]); }
@@ -383,12 +447,17 @@ let firstResume = true;
 function resume() {
   if (props.active === false) return;
   pageVisible.value = true;
+  syncShareMenu();
+  if (panelOpen.value && panel.value === "resultShare") void prepareResultShare();
   const alreadyLoaded = firstResume && (detail.value || loading.value || error.value);
   firstResume = false;
   if (!alreadyLoaded) void reload();
 }
-function suspend() { pageVisible.value = false; clearTimeout(cheerTimer); cheerRevision++; cheerLoading.value = false; invalidateShared(); clearTimeout(noticeTimer); clearTimeout(highlightTimer); notice.value = ""; highlighted.value = ""; uni.hideKeyboard(); }
-function share() { return { title: matchShareTitle(detail.value?.match.name), path: inviteToken.value ? `/pages/matchDetails/index?invite=${inviteToken.value}` : "/pages/index/index" }; }
+function suspend() { pageVisible.value = false; resultShareRevision++; resultShareLoading.value = false; resultShareCopying.value = false; clearTimeout(cheerTimer); cheerRevision++; cheerLoading.value = false; invalidateShared(); clearTimeout(noticeTimer); clearTimeout(highlightTimer); notice.value = ""; highlighted.value = ""; uni.hideKeyboard(); }
+function share() {
+  if (resultShareReady.value) return resultSharePayload(detail.value!.match.name, resultShareToken.value);
+  return { title: matchShareTitle(detail.value?.match.name), path: canInvite.value && inviteToken.value ? `/pages/matchDetails/index?invite=${inviteToken.value}` : "/pages/index/index" };
+}
 async function requestBack() {
   if (busy.value) return false;
   if (confirmation.value) { answer(false); return false; }
